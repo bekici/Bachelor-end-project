@@ -1,0 +1,152 @@
+\documentclass[a4paper]{article}
+\usepackage[margin=1in, footskip=30pt]{geometry}
+\usepackage{amsmath}			% Allows use of equation editor
+\usepackage{graphicx}			% Allows use of images
+\usepackage{hyperref}			% Allows hyperlink references
+\usepackage{float}				% Improves image placement
+\usepackage{booktabs}			% Improves table behavior
+\usepackage{tabu}				% Powerful table environment
+\usepackage{subcaption}			% Allows use of subfigures
+\usepackage[toc,page]{appendix}	% Improves appendix behavior
+\usepackage{url}                % Improves URL behavior
+\usepackage{todonotes}          %todo notes
+\usepackage{fancyhdr}			% Enables fancy headers
+\usepackage{booktabs}			% Allows professional tables
+\usepackage{multirow}           % For table
+%\usepackage{gensymb}
+\usepackage{caption}    
+\usepackage[ruled,vlined]{algorithm2e}
+\usepackage{siunitx}
+\usepackage{systeme}
+\usepackage{enumitem}
+\usepackage{comment}
+\usepackage{braket}
+\usepackage[explicit]{titlesec}
+\usepackage{parskip}
+\usepackage{amssymb}
+\usepackage{filecontents}
+\usepackage{fancyvrb}
+\usepackage{listings}
+\renewcommand\lstlistingname{Source Code}
+\renewcommand\lstlistlistingname{Source Code}
+\usepackage{xcolor}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{amsthm}
+\usepackage{adjustbox}    
+\usepackage[labelfont=bf]{caption}
+
+\newtheorem{proposition}{Proposition}[section]
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\theoremstyle{remark}
+\newtheorem*{remark}{\textbf{Remark}}
+%\renewenvironment{proof}{{\itshape \bfseries Proof.}}{\qed}      %<-------- Change default proof in italic to bold
+
+%\titleformat{\section}{\bfseries\large}{\arabic{section}. #1}{6pt}{}
+
+\makeatletter
+\def\tagform@#1{\maketag@@@{\small(\ignorespaces#1\unskip\@@italiccorr)}}                         %<------- Change size of equation number
+\makeatother
+
+\titleformat{\section}
+  {\normalfont\fontsize{12}{15}\bfseries}{\thesection. #1}{1em}{}
+
+\setlength{\parindent}{0em}
+\setlength{\parskip}{0.5\baselineskip}
+
+\usepackage{biblatex}
+\addbibresource{bib.bib}
+\addbibresource{bib2.bib}
+
+\DeclareRobustCommand{\gobblefive}[5]{}
+\newcommand*{\SkipTocEntry}{\addtocontents{toc}{\gobblefive}}
+\setlist[itemize]{noitemsep, topsep=0pt}
+\renewenvironment{abstract}
+ {
+  \begin{center}
+  \bfseries \abstractname\vspace{-.2em}\vspace{0pt}
+  \end{center}
+  \list{}{%
+    \setlength{\leftmargin}{11mm}% <---------- CHANGE HERE
+    \setlength{\rightmargin}{\leftmargin}%
+  }%
+  \item\relax}
+ {\endlist}
+ 
+\newcommand{\abs}[1]{\left\lvert #1 \right\rvert}
+\newcommand{\vertiii}[1]{{\left\vert\kern-0.25ex\left\vert\kern-0.25ex\left\vert #1 
+    \right\vert\kern-0.25ex\right\vert\kern-0.25ex\right\vert}}
+\begin{document}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codeorange}{rgb}{1,0.49,0}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.96}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegray},
+    keywordstyle=\color{codeorange},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codegreen},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    xleftmargin=10pt,
+}
+\lstset{style=mystyle}
+
+\input{Chapters/00Titlepage.tex}
+
+\thispagestyle{empty}
+\addtocontents{toc}{\protect\thispagestyle{empty}}
+\pagenumbering{gobble}
+\setlength{\parskip}{11pt}
+\pagenumbering{arabic}
+
+\clearpage\input{Chapters/0Abstract.tex}
+\newpage
+\tableofcontents
+
+\clearpage\input{Chapters/1Introduction.tex}
+\clearpage\input{Chapters/2Part_I_theory}
+\clearpage\input{Chapters/3Part_II_theory}
+\clearpage\input{Chapters/4Part_III_theory}
+\clearpage\input{Chapters/5Results}
+\clearpage\input{Chapters/6Conclusion}
+\clearpage\input{Chapters/7Discussion}
+\clearpage\input{Chapters/AppendixA.tex}
+\clearpage\input{Chapters/AppendixB.tex}
+\clearpage\input{Chapters/bib.tex}
+
+%\appendix
+%\titleformat{\section}
+  %{\normalfont\fontsize{12}{15}\bfseries}{#1 \thesection}{1em}{}
+%\pagenumbering{Roman}
+\printbibliography
+
+
+\end{document} 
+
+
+
+
+
+
+
+
+
+
+

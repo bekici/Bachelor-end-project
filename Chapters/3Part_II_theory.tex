@@ -1,0 +1,121 @@
+\section{Gradient Descent Algorithm}\label{sec: GD}
+\subsection{Gradient Descent}
+Gradient descent is part of a family of algorithms called descent methods. Using descent methods a minimizing sequence $x^{(k)}$ with $k = 1,\ldots$ can be generated where $$x^{(k+1)} = x^{(k)} + \tau^{(k)} \Delta x^{(k)}$$ Here $\tau^{(k)} > 0$ is called the step size and $\Delta x^{(k)}$ is called the search direction. The superscripts $k=0,1\ldots$ denote the iteration number. Since the goal is to eventually minimize the function $f$ in \eqref{eq:8}, it should hold that $f(x^{(k+1)}) < f(x^{(k)})$ for every $k \in \mathbb{N}$ considered, until an optimal solution is reached. To achieve a decrease in the function value in every iteration, the search direction needs to satisfy the following strict inequality: $$\nabla f(x^{(k)})^{T} \Delta x^{(k)} < 0.$$ By definition, the gradient of the function at the current iteration, say $\nabla f(x^{(k)})$, points in the direction of the steepest increase of the function. To minimize $f$, the search direction $\Delta x^{(k)}$ should be chosen to point in the opposite direction. This means that the angle between the gradient and the search direction should be acute, and as a result, the inner product between $\nabla f(x^{(k)})$ and $\Delta x^{(k)}$ is less than 0. As stated in \cite[464]{boyd2004convex}, a general descent method consists of the following stages: 
+\begin{algorithm}
+\caption{\textit{General descent method}}
+\begin{algorithmic}
+\State \textbf{Given} a starting point $x \in \textbf{dom} f$.
+\vspace{0.03cm}
+\State \textbf{repeat}\\
+\begin{enumerate}
+    \item Determine a descent direction $\Delta x.$
+    \item \textit{Line search.} Choose a step size $\tau > 0$.
+    \item \textit{Update.} $x := x + \tau \Delta x.$
+\end{enumerate}
+\State \textbf{until} stopping criterion is satisfied.
+\end{algorithmic}
+\end{algorithm}\\
+The negative gradient $\Delta x = -\nabla f(x)$ is a natural choice for the search direction. The resulting algorithm is called the \textit{gradient descent method.} As stated in \cite[466]{boyd2004convex}, the gradient descent method consists of the following stages:
+\begin{algorithm}
+\caption{\textit{Gradient descent method}}\label{Pseudocode_GD}
+\begin{algorithmic}
+\State \textbf{Given} a starting point $x \in \textbf{dom} f$.
+\vspace{0.03cm}
+\State \textbf{repeat}\\
+\begin{enumerate}
+    \item $\Delta x := -\nabla f(x).$
+    \item \textit{Line search.} Choose a step size $\tau > 0.$
+    \item \textit{Update.} $x := x + \tau \Delta x.$
+\end{enumerate}
+\State \textbf{until} stopping criterion is satisfied.
+\end{algorithmic}
+\end{algorithm}\\
+The second step in the repeat block is known as the \textit{line search}. The step size $\tau$ determines the next vector $x$. Two approaches for determining the step size are fixed step size and line search. In the fixed step size method, the same step size $\tau$ is used for every iteration until the stopping criterion is met. On the other hand, the line search method adjusts the step size at each iteration to ensure that the algorithm progresses toward the minimum without overshooting it. Specifically, the line search method searches for the optimal step size that minimizes the cost function along the descent direction. This allows the algorithm to take larger steps when the slope is steep and smaller steps when the slope is flat. The stopping criterion is often checked immediately after, the descent direction $\Delta x$ is computed. The stopping criterion is of the form $||\nabla f(x)||_{2} \leq \eta,$ where $\eta$ is small and positive. 
+
+\subsection{Convergence Analysis of Gradient Descent}
+Two different methods of choosing the step size have been briefly discussed. It is important to prove that the gradient descent method converges for both. To solve the problem $\nabla f(x^{*}) = 0$ via gradient descent, we start with some initial guess $x^{(0)},$ and then the algorithm produces a sequence $\{x^{(k)}\}$ where hopefully the sequence converges to $x^{*}$, meaning $||x^{(k)}-x^{*}||_{2} \rightarrow 0$ as $k \rightarrow \infty$ where $||\cdot||_{2}$ is the Euclidean norm.
+\subsubsection{Convergence analysis of gradient descent with fixed step size}
+For gradient-based optimization methods like gradient descent, a key issue is choosing an appropriate step size. In a fixed step size method, the step size is chosen in advance and remains constant throughout the optimization process. This can lead to two problems: if the step size is too small, the algorithm may take too many iterations to converge to the minimum, while if the step size is too large, the algorithm may overshoot the minimum and diverge. The question of whether or not gradient descent converges in the case of a fixed step size $\tau$, boils down to finding an appropriate interval from which $\tau$ can be chosen. Usually, the correct range of step sizes is determined by the Lipschitz constant of $\nabla f(x)$ and the strong convexity constant $\alpha.$ In the convergence proof of gradient descent, an important assumption is that the objective function has Lipschitz continuous gradients. These functions are called smooth functions.
+\begin{definition}
+\cite[8]{GDlips}
+A differentiable function $f(x)$ is called smooth $\iff$ it has a Lipschitz continuous gradient, i.e., $\iff$ $\exists L < \infty$ such that
+\begin{equation*}\label{eq:14}\tag{3.1.1.1}
+\begin{aligned}
+    &||\nabla f(x) - \nabla f(z)||_{2} \leq L||x-z||_{2},\text{ } \forall x, z \in \mathbf{R}^{n}.
+\end{aligned}
+\end{equation*}
+\end{definition}
+Later on, it will become clear why $L$ plays a crucial role in determining the step size $t.$ A question that comes to mind is how to determine $L.$ While it is not always possible to determine the Lipschitz constant of the gradient for any smooth function, the following remark provides a method to find $L.$
+\begin{remark}\label{findL}
+\cite[10]{GDlips}
+If $f(x)$ is twice differentiable and if there exists $L < \infty$ such that its Hessian matrix has a bounded spectral norm\footnote{See \ref{spectral norm} for theorem about the spectral norm.}:
+\begin{equation*}\label{eq:15}\tag{3.1.1.2}
+\begin{aligned}
+    &\vertiii{\nabla^{2} f(x)}_{2} \leq L,\text{ } \forall x \in \mathbf{R}^{n}
+\end{aligned}
+\end{equation*}
+then $f(x)$ has a Lipschitz continuous gradient with Lipschitz constant L. 
+\end{remark}
+\begin{proof}
+Using the fundamental theorem of calculus and the triangle inequality:
+\begin{align*}
+&\left\Vert\nabla f(x) - \nabla f(z)\right\Vert_{2}
+=\left\Vert\int_{0}^{1} \nabla^{2} f(x + t(z-x))\,dt(x-z)\right\Vert_{2}\\
+&\leq \left(\int_{0}^{1} \vertiii{\nabla^{2} f(x + t(z-x))}_{2} \,dt\right) ||x-z||_{2} \leq \left(\int_{0}^{1} L \,dt\right) ||x-z||_{2} = L\text{ }||x-z||_{2}
+\end{align*}
+\end{proof}
+Another assumption for the convergence proof is that the objective function $f$ is strongly convex. As the name suggest this assumption is "stronger" than mere convexity. In fact strong convexity implies strict convexity which implies convexity. 
+\begin{definition}
+\cite[459]{boyd2004convex}
+$f$ is strongly convex on $S$ if there exists an $\alpha > 0$ such that
+\begin{equation*}\label{eq:16}\tag{3.1.1.3}
+\begin{aligned}
+    &\nabla^{2} f(x) \succcurlyeq \alpha I \text{ } \text{ }\forall x \in S
+\end{aligned}
+\end{equation*}
+where $S = \{x \in \textbf{dom} f \text{ }|\text{ } f(x) \leq f(x^{0})\}$
+\end{definition}
+Strong convexity has several interesting consequences. For $x,y \in S$ we have
+$$f(y) = f(x) + \nabla f(x)^{T}(y-x) + \frac{1}{2} (y-x)^{T}\nabla^{2} f(z) (y-x)$$
+for some $z$ on the line segment $[x, y].$ By the strong convexity assumption \ref{eq:16} we get that the last term on the right hand side is at least $(\alpha/2)||y-x||^{2}_{2}.$ We obtain the first-order characterization for strong convexity namely:
+\begin{equation*}\label{eq:17}\tag{3.1.1.4}
+\begin{aligned}
+    &f(y) \geq f(x) + \nabla f(x)^{T}(y-x) + \frac{\alpha}{2}||y-x||^{2}_{2}
+\end{aligned}
+\end{equation*}
+for all $x$ and $y$ in $S$. For $\alpha=0$, the lower bound for convexity is recovered. Proposition \ref{pf_gd_sc_L} gives an upper bound for the step size for which convergence is ensured.
+
+\begin{proposition}\label{pf_gd_sc_L}
+Let $f: \mathbf{R}^{n}\longrightarrow \mathbf{R}$ be $\alpha$-strongly convex and differentiable on $\textbf{dom}f = \mathbf{R}^{n}.$ Furthermore, suppose that $f$ is smooth on $\textbf{dom}f = \mathbf{R}^{n}$, i.e., $\nabla f$ is Lipschitz with Lipschitz constant $L$ and that the optimum value $f^{*} = \textnormal{min}_{x}(f(x))$ is finite and attained at $x^{*}$ such that $\nabla f(x^{*})=0.$ Then $||x^{(k+1)}-x^{*}|| \rightarrow 0$ as $k \rightarrow \infty$ if $\tau < 2\alpha/L^{2}$ where $\tau$ is the step size. $||\cdot||$ is the Euclidean norm. 
+\end{proposition}
+\begin{proof}
+Goal: Find $0\leq C < 1$ such that $||x^{(k+1)} - x^{*}|| \leq C||x^{(k)} - x^{*}||.$ If such a $C$ exists then inductively $||x^{(k+1)} - x^{*}|| \leq C||x^{(k)} - x^{*}|| \leq C^{2}||x^{(k-1)} - x^{*}|| \leq \ldots \leq C^{k+1}||x^{(0)} - x^{*}||$, which means that as $k\rightarrow \infty$ $||x^{(k+1)} - x^{*}|| \rightarrow 0.$ Now since $f$ is $\alpha$-strongly convex:
+\begin{align}
+    &f(y) - f(x) \geq \langle \nabla f(x),\text{ } y-x\rangle + \frac{\alpha}{2}||y-x||^{2} \text{ }\text{ } \forall x,y \in \mathbf{R}^{n}\text{,} \text{ } \text{hence} \nonumber\\
+    &f(x^{(k)}) - f(x^{*}) \geq \langle \nabla f(x^{*}),\text{ } x^{(k)}-x^{*}\rangle + \frac{\alpha}{2}||x^{(k)}-x^{*}||^{2}\nonumber\\
+    &f(x^{*}) - f(x^{(k)}) \geq \langle \nabla f(x^{(k)}),\text{ } x^{*}-x^{(k)}\rangle + \frac{\alpha}{2}||x^{*}-x^{(k)}||^{2}\nonumber
+\end{align}
+Summing these inequalities and using $\nabla f(x^{*}) = 0$ yields:
+\begin{align}
+    &\langle \nabla f(x^{(k)}) - \nabla f(x^{*}),\text{ } x^{(k)} - x^{*}\rangle = \langle \nabla f(x^{(k)}),\text{ } x^{(k)} - x^{*}\rangle \geq \alpha ||x^{(k)} - x^{*}||^{2}.
+\end{align}
+$\nabla f$ is Lipschitz with Lipschitz constant $L$, so we get:
+\begin{align}
+    &||\nabla f(x) - \nabla f(y)|| \leq L||x-y||,\text{ } \forall x, y \in \mathbf{R}^{n} \implies ||\nabla f(x^{(k)}) - \nabla f(x^{*})|| \leq L||x^{(k)}-x^{*}||
+\end{align}
+Now choose $\tau > 0,$ then:
+\begin{align}
+||x^{(k+1)}-x^{*}||^{2}
+    &= ||x^{(k)}-x^{*}-\tau \nabla f(x^{(k)})||^{2} = ||x^{(k)}-x^{*}-\tau (\nabla f(x^{(k)})-\nabla f(x^{*}))||^{2}\nonumber\\
+    &= ||x^{(k)}-x^{*}||^{2} + \tau^{2}||\nabla f(x^{(k)})-\nabla f(x^{*})||^{2} - 2\tau \langle x^{(k)}-x^{*},\text{ } \nabla f(x^{(k)})-\nabla f(x^{*})\rangle\\
+    &\leq ||x^{(k)}-x^{*}||^{2} + \tau^{2}L^{2}||x^{(k)}-x^{*}||^{2} - 2\alpha \tau||x^{(k)}-x^{*}||^{2}\nonumber\\
+    &= \left(1+\tau^{2}L^{2}-2\alpha \tau \right)||x^{(k)}-x^{*}||^{2}
+\end{align}
+where we used inequalities (1) and (2) to bound (3) by (4).\\ To ensure a contradiction, we require 0 $\leq 1+\tau^{2}L^{2}-2\alpha \tau < 1 \implies -1 \leq \tau\left(\tau L^{2}-2\alpha \right) < 0 \implies \tau L^{2}-2\alpha < 0 \implies \tau < 2\alpha/L^{2}.$ 
+\end{proof}
+We observe that $\tau < 2\alpha / L^{2}$ is a sufficient condition for convergence of gradient descent, however, it is not a necessary condition. There are many cases where gradient descent converges even when $\tau \geq 2\alpha / L^{2}$. Other researchers have found a different bound for the step size. For example in \cite[10]{GDandLS}, the bound $\tau \leq 2/(\alpha+L)$ is given, where the assumptions for $f$ are the same as for Proposition \ref{pf_gd_sc_L}. It will depend on the problem at hand which of the bounds is less tight. Both bounds ensure convergence, so choosing the sharper bound secures faster convergence. Generally, $\tau$ can be chosen such that $\tau < \max\{2\alpha / L^{2},\text{ } 2/(\alpha+L)\}$ is satisfied. In both cases, the algorithm's running time is represented by $O(C^{k})$, which is known for its exponential speed. This phenomenon is known as \textit{linear convergence}, which can be observed as a straight line when plotted on a logarithmic scale. Specifically, plotting the iterations on the x-axis and the difference in function values on the y-axis with respect to the final iterate results in a straight line. Another known bound for the step size is the bound $\tau \leq 1/L.$ The difference between this bound and the prior bounds is that in this case, the assumption of strong convexity is relaxed, and only convexity is needed. See proposition \ref{pf_gd_c_L}, and its proof in \cite[9]{GDandLS}.
+\begin{proposition}\label{pf_gd_c_L}
+\textnormal{\cite[9]{GDandLS}}
+Let $f: \mathbf{R}^{n}\longrightarrow \mathbf{R}$ be convex and differentiable on $\textbf{dom}f = \mathbf{R}^{n}.$ Furthermore, suppose that $f$ is smooth on $\textbf{dom}f = \mathbf{R}^{n}$, i.e., $\nabla f$ is Lipschitz with Lipschitz constant $L$ and that the optimum value $f^{*} = \textnormal{min}_{x}(f(x))$ is finite and attained at $x^{*}$ such that $\nabla f(x^{*})=0.$ Then gradient descent with fixed step size $\tau \leq 1/L$ satisfies $f(x^{(k)})-f(x^{*}) \leq \frac{||x^{(0)}-x^{*}||^{2}}{2\tau k}.$ 
+\end{proposition}
+When dealing with this particular case, the running time of the algorithm is represented by $O(1/k)$, which is comparatively slower than $O(C^{k})$. Additionally, it is observed that $\max\{2\alpha / L^{2},\text{ } 2/(\alpha+L)\} > 1/L.$ Therefore, if the objective function is strongly convex, utilizing $\max\{2\alpha / L^{2},\text{ } 2/(\alpha+L)\}$ as the bound for $\tau$ ensures faster convergence. However, it is worth noting that in cases where determining strong convexity is difficult, one can always choose $1/L$. Moreover, most convex functions are not strongly convex. Only a small subset of convex functions are strongly convex.
