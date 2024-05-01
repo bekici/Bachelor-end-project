@@ -1,0 +1,22 @@
+name: Build LaTeX Document
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up TeX Live
+      uses: xu-cheng/latex-action@v2
+      with:
+        root_file: thesis.tex
+    - name: Compile LaTeX Document
+      run: |
+        pdflatex -interaction=nonstopmode thesis.tex
+        biber thesis
+        pdflatex -interaction=nonstopmode thesis.tex
+        pdflatex -interaction=nonstopmode thesis.tex
+    - name: Upload PDF
+      uses: actions/upload-artifact@v2
+      with:
+        name: thesis-pdf
+        path: thesis.pdf
