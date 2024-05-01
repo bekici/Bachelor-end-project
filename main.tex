@@ -1,7 +1,8 @@
 \documentclass[a4paper]{article}
 \usepackage[margin=1in, footskip=30pt]{geometry}
-\usepackage{amsmath}			% Allows use of equation editor
+\usepackage{amsmath} % Allows use of equation editor
 \usepackage{graphicx}			% Allows use of images
+\usepackage{marvosym}
 \usepackage{hyperref}			% Allows hyperlink references
 \usepackage{float}				% Improves image placement
 \usepackage{booktabs}			% Improves table behavior
@@ -14,6 +15,7 @@
 \usepackage{booktabs}			% Allows professional tables
 \usepackage{multirow}           % For table
 %\usepackage{gensymb}
+\usepackage{bbm}
 \usepackage{caption}    
 \usepackage[ruled,vlined]{algorithm2e}
 \usepackage{siunitx}
@@ -30,12 +32,12 @@
 \renewcommand\lstlistingname{Source Code}
 \renewcommand\lstlistlistingname{Source Code}
 \usepackage{xcolor}
-\usepackage{algorithm}
+%\usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{amsthm}
 \usepackage{adjustbox}    
 \usepackage[labelfont=bf]{caption}
-
+%usepackage{romannum}
 \newtheorem{proposition}{Proposition}[section]
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{corollary}{Corollary}[theorem]
@@ -57,10 +59,10 @@
 
 \setlength{\parindent}{0em}
 \setlength{\parskip}{0.5\baselineskip}
-
 \usepackage{biblatex}
-\addbibresource{bib.bib}
-\addbibresource{bib2.bib}
+\bibliography{bib}
+%\usepackage{biblatex}
+%\addbibresource{bib.bib}
 
 \DeclareRobustCommand{\gobblefive}[5]{}
 \newcommand*{\SkipTocEntry}{\addtocontents{toc}{\gobblefive}}
@@ -117,6 +119,7 @@
 \pagenumbering{arabic}
 
 \clearpage\input{Chapters/0Abstract.tex}
+\clearpage\input{Chapters/0Preface}
 \newpage
 \tableofcontents
 
@@ -126,9 +129,7 @@
 \clearpage\input{Chapters/4Part_III_theory}
 \clearpage\input{Chapters/5Results}
 \clearpage\input{Chapters/6Conclusion}
-\clearpage\input{Chapters/7Discussion}
-\clearpage\input{Chapters/AppendixA.tex}
-\clearpage\input{Chapters/AppendixB.tex}
+\clearpage\input{Chapters/Appendix.tex}
 \clearpage\input{Chapters/bib.tex}
 
 %\appendix
@@ -136,7 +137,6 @@
   %{\normalfont\fontsize{12}{15}\bfseries}{#1 \thesection}{1em}{}
 %\pagenumbering{Roman}
 \printbibliography
-
 
 \end{document} 
 
