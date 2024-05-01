@@ -1,232 +1,216 @@
 \section{Stochastic optimization}
-\subsection{Minimizing Sums and Expectation}
-As discussed in \cite[20]{coursenotesML}, a large class of functions in machine learning can be expressed as minimizing expectations of the form
-\begin{equation*}\label{expectations}\tag{4.2.1}
-\underset{x \in \mathbf{R}^{p}}{\text{min}} F(x) \overset{\text{def.}}{=} \mathbb{E}_{z\sim P_{z}}[f(x,z)] = \int_{\Omega} f(x, z) dP_z(z)
-\end{equation*}
-In this framework, one works in a specific probability space: $\left(\Omega, \mathcal{F}, \mathbb{P}\right),$ where $f: \mathbf{R}^{p} \times \Omega \rightarrow \mathbf{R}$ is a function depending on a random argument $z$ and a parameter $x$ to be optimized.
-While minimizing expectations is a general framework that allows us to account for uncertainty in the data and model parameters, in many practical machine learning applications, we encounter optimization problems where the goal is to minimize a sum of functions of the form
-\begin{equation*}\label{largesums}\tag{4.2.2}
-\underset{x \in \mathbf{R}^{p}}{\text{min}} F(x) \overset{\text{def.}}{=} \frac{1}{n} \sum_{i=1}^{n}f_{i}(x)
-\end{equation*}Problem \ref{largesums} can be seen as a special case of \ref{expectations} when assuming that the unknown distribution is a discrete uniform distribution. Specifically, if we let $P_{z}\sim\mathcal{U}\{1,\ldots,n\}$ and set $f(x, z_i) = f(x, i) = f_{i}(x)$, we can work with the probability mass function:
-\begin{equation*}
-\mathbb{P}(z = i) = \frac{1}{n}
-\end{equation*}
-Under this assumption, the expectation of $f(x, z)$ can be expressed as follows:
-\begin{align*}
-F(x)
-    &= \mathbb{E}_{z\sim P_{z}}[f(x,z)] = \sum_{i=1}^{n} f(x, z_i) \mathbb{P}(z = i) = \sum_{i=1}^{n} f_{i}(x) \frac{1}{n} = \frac{1}{n} \sum_{i=1}^{n} f_{i}(x)
-\end{align*}
-Thus, when we assume that the unknown distribution is a discrete uniform distribution, minimizing the expectation in \ref{expectations} becomes equivalent to minimizing the sum in \ref{largesums}, where $f(x, z_i) = f_{i}(x).$ Minimizing sums with a discrete uniform distribution is a widely used technique in machine learning. This is because in many machine learning applications, explicitly specifying a probability distribution over the data can be infeasible. By assuming a discrete uniform distribution, each data point is treated as equally likely, making the optimization problem more tractable. This formulation conveniently transforms the cost function, initially defined as an expectation, into a sum, which simplifies the problem and makes it easier to work with. In general, stochastic optimization methods like SGD are not always faster than deterministic methods like the usual gradient descent. If the size of the dataset $n$ is not too large, then one can afford to perform a few deterministic iterations. Then deterministic methods can be faster. But if $n$ is too big for even one deterministic iteration, stochastic methods can help because they can break down the cost of deterministic iterations into smaller pieces, which allows for a more precise approach.
-
-\subsection{Batch Gradient Descent (BGD)}
-The usual deterministic (batch) gradient descent is studied in extensive detail in Section \ref{sec: GD}. Its iterations read $$x_{k+1} = x_{k} - \tau_{k}\nabla F(x_{k})$$
-and without the strong convexity assumption, the step size should be chosen as $0 < \tau_{k} < \tau_{\text{max}} = 1/L$ where $L$ is the Lipschitz constant of the gradient $\nabla F$. \ref{pf_gd_c_L} In this deterministic setting choosing $\tau \approx \tau_{max}$ ensures quite fast convergence. (even linear rates if $f$ is strongly convex.) In the setting of minimizing large sums, the gradient reads 
-\begin{equation*}\label{full_grad_of_sum}\tag{4.3.1}
-\nabla F(x) = \frac{1}{n} \sum_{i=1}^{n}\nabla f_{i}(x)
-\end{equation*}
-So it typically has complexity $O(np)$ if computing $\nabla f_{i}(x)$ has linear complexity $p.$ Here $i \in \{1,\ldots,n\}$ represent indices and not random variables. 
-
-\subsection{Stochastic Gradient Descent (SGD)}
-In general settings, Stochastic Gradient Descent (SGD) can be applied to minimize expectations over any probability space, not only in the case of a discrete uniform distribution. This broader framework can be particularly useful when dealing with large-scale optimization problems, where computing the exact gradient can be computationally expensive. In this section, an overview of the general SGD approach will be provided, while still highlighting its applications in the context of minimizing large sums.
-
-Given a random variable $z$ with a probability distribution $P_z$, the objective is to minimize the expected value of a function $f(x, z)$, where $x \in \mathbf{R}^p$:
-\begin{equation*}\tag{4.4.1}
-F(x) = \mathbb{E}_{z \sim P_z}[f(x, z)].
-\end{equation*}
-
-In contrast to the standard gradient descent method, which requires the computation of the exact gradient $\nabla F$, the SGD algorithm approximates the gradient using a single stochastic estimate. To compute this approximation, first, a random variable $z_k$ is drawn from the distribution $P_z$. This $z_k$ is an independent realization of $z$ at iteration $k$. Next, the gradient of $f(x, z_k)$ for this specific realization is calculated.
-
-The stochastic gradient $\nabla f(x, z_k)$ is an unbiased estimator of the true gradient, which can be shown through the following expectation:
-\begin{equation*}\label{gd_unbiased}\tag{4.4.2}
-\mathbb{E}_{z \sim P_z}[\nabla f(x, z)] = \nabla F(x)
-\end{equation*}
-Here, $z$ inside the expectation denotes the random variable following the distribution $P_z$. The expectation is taken over all possible draws of the random variable $z$. It demonstrates that the expected value of the stochastic gradient computed for any draw $z_k$ from the distribution $P_z$ is equal to the true gradient $\nabla F(x)$. The $z_k$'s represent the draws from the distribution $P_z$ at iteration $k$, and they are all random variables, each being an independent realization of $z$. The subscript $k$ denotes the iteration number of the SGD, and the assumption is that the $z_k$'s are all independent and identically distributed (i.i.d.). Starting from an initial point $x_0$, the SGD iteration is performed using the stochastic gradient computed based on the specific draw $z_k$. The update equation is as follows:
-\begin{equation*}\tag{4.4.3}
-x_{k+1} = x_k - \tau_k \nabla f(x_k, z_k),
-\end{equation*}
-In this equation, $x_k$ is the current parameter estimate, $\tau_k$ is the step size at iteration $k$, and $\nabla f(x_k, z_k)$ is the stochastic gradient estimate based on the draw $z_k$ from the distribution $P_z$.  In the context of minimizing large sums with a discrete uniform distribution, the random variable $z_k$ is used to represent the index of a randomly chosen data point, and $i(k)$ is used as an equivalent notation for $z_k$. The formula becomes:
-\begin{equation*}\label{SGD_update}\tag{4.4.4}
-x_{k+1} = x_k - \tau_k \nabla f_{i(k)}(x_k),
-\end{equation*}
-In this case, $i(k)$ is a random variable drawn from the uniform distribution on $\{1, \ldots, n\}$. For each iteration index $k$, $i(k)$ represents the index of a randomly selected data point, and the gradient computation is based on this specific data point. The sequence of vectors $x_{k+1}$ forms a random process, and the convergence analysis of SGD aims to determine whether this process converges in quadratic mean to a deterministic vector $x^*$ that minimizes the objective function $F$. Note that in the case of minimizing large sums, batch gradient descent has complexity $O(np),$ while a step of SGD only has complexity $O(p).$ SGD is thus advantageous when $n$ is very large, and one cannot afford to compute the full gradient.
-
-
-An essential aspect of SGD is determining an appropriate step size schedule. Adaptive step size methods are favored over fixed step sizes, as they can adjust to the characteristics of the dataset based on the gradient behavior. The step size $\tau_k$ should go to zero as $k \rightarrow \infty$, but not too quickly, as it can impact the convergence of the algorithm. As extensively covered in \cite[9-11]{murata}, a typical step size schedule that ensures both properties is to have $\tau_k \sim k^{-1}$ for $k \rightarrow \infty$. In practical applications, minimizing large sums is a common task. Employing a discrete uniform distribution to address these problems is often more convenient and widely used. Stochastic Gradient Descent (SGD) can handle both this approach and the general framework for optimization. SGD's versatility and computational efficiency make it a popular choice in machine learning, particularly for large-scale challenges.
-
-
 \subsection{Machine learning}
-\subsubsection{Introduction}
-Machine learning is a field that enables computers to learn from data and improve their performance. One effective approach is supervised learning, which learns from labeled data. In this method, a model with parameters, denoted as $x \in \mathbf{R}^{p}$, is used, aiming to find an optimal set of parameters that work well for the given task. This performance is measured by a loss function, which tells the difference between the model's predicted and true outputs. By adjusting the model's parameters to minimize the loss function, the model's performance on the task improves. The objective or cost function is typically the sum of individual losses across a dataset. Stochastic Gradient Descent (SGD) methods are often employed when dealing with large or infinite datasets, as they are efficient optimization tools that minimize the cost function. The overall goal of supervised learning and the use of SGD is to find the set of model parameters that result in the lowest possible cost, meaning the model is performing optimally on the task at hand. In the following sections, the details of these concepts and their application in the context of neural network optimization will be discussed.
-\begin{comment}
-Machine learning is a powerful field that allows computers to learn from data, improving their performance on a task without being explicitly programmed. Among the various approaches in machine learning, supervised learning stands out due to its effectiveness in learning from labeled data. In supervised learning, we use a model with parameters, denoted as $x \in \mathbf{R}^{p}$, where $p$ is the number of parameters. The aim is to find an optimal set of parameters that perform well on a given task. This performance is often measured by a loss function, which quantifies the difference between the model's predicted output and the true output. The model's parameters are adjusted to minimize this loss function, thereby improving the performance of the model on the task. The objective or cost function is typically defined as the sum of the individual losses across a dataset. When the number of samples $n$ in the dataset is large, potentially even infinite, it becomes computationally expensive to compute the loss for all samples at once. In such scenarios, Stochastic Gradient Descent (SGD) methods are often employed. These methods are efficient optimization tools that enable us to minimize the cost function even when dealing with large or infinite datasets. Overall, the goal of supervised learning and the use of SGD is to find the set of model parameters that result in the lowest possible cost, meaning the model is performing optimally on the task at hand. In the following sections, we delve into the details of these concepts and their application in the context of neural network optimization.
-\end{comment}
-\subsubsection{Basics of Supervised Learning and Neural Networks}
+\subsubsection{Motivation}
+Stochastic optimization is routinely used in machine learning. Machine learning is a field that enables computers to learn from data and improve their performance. Learning methodologies in machine learning generally fall under one of three primary paradigms: supervised learning, unsupervised learning, and reinforcement learning \cite[101-105]{Goodfellow-et-al-2016}. This thesis will focus on the approach of supervised learning. As suggested by the name, this method involves training a machine learning model using labeled data. The model is exposed to training examples composed of inputs and their corresponding desired outputs, which are provided by a human supervisor. The objective is to formulate a general rule that can effectively map these inputs to the correct outputs. In this context, the model is equipped with a set of parameters, commonly referred to as weights and biases, and denoted as $\theta \in \mathbb{R}^{p}$, which are randomly initialized before the training process begins. The key to achieving the goal of accurately mapping inputs to their intended outputs lies in identifying an optimal set of these parameters. Once the parameters are initialized, inputs are fed into the model, which in turn generates corresponding outputs. These outputs represent the model's predictions of the true values. Performance is measured using a loss function, which quantifies the difference between the predicted outputs and the true values. When dealing with an entire dataset, we calculate a cost or objective function, which is typically the average of all individual losses across the dataset. The aim of supervised learning is to adjust the parameters $\theta$ to minimize this cost function, thereby improving overall model performance. To achieve this, Stochastic Gradient Descent (SGD) methods are commonly employed, especially when dealing with large datasets. The details of these concepts and their implementation in the optimization of neural networks will be discussed in the subsequent sections.
+\subsubsection{Basics of Supervised Learning and Neural Networks}\label{Basic_of_SL_FFNN}
 \paragraph{Supervised Learning}
-Supervised learning is a branch of machine learning. It operates in settings where we have a wealth of labeled data readily available. This data can be described by a function $f^*$ that maps an input $x$ to a labeled output $y=f^*(x)$ \cite{bishop2006}. Therefore, the data is a collection of input-output pairs $(x, y)$. In practice, we select a small subset of this data, known as the training data, to build a model. This model is represented by a function $f$ that maps an input $x$ and parameters $\theta$ (commonly known as weights or biases) to a predicted output $\hat{y}$ \cite{Goodfellow-et-al-2016}. The ultimate goal is to align $f$ as closely as possible with $f^*.$ The training data offers us noisy, approximate examples of $f^*(x).$ The objective of supervised learning is to adjust the model's parameters $\theta$ such that the model's predictions align closely with the actual output values from the training data. This is achieved by defining a loss function that quantifies the difference between the model's predictions and the actual output values. Optimization algorithms, like stochastic gradient descent (SGD), are then used to iteratively adjust the model's parameters to minimize this loss. The primary goal of supervised learning is to create a model that not only fits the training data well, but also generalizes effectively to the rest of the original data not included in the training set, and more importantly, to unseen data. This means that the model should be able to make accurate predictions even when presented with new data, showcasing its capacity for generalization \cite{james2013}.
-\paragraph{Feed-forward Neural Networks}
-In supervised learning, feed-forward neural networks approximate the mapping $f^*: x \mapsto y$ by defining a mapping $f: (x;\theta) \mapsto \hat{y}$, and iteratively learning parameter values $\theta$ for the best function approximation. The network is composed of distinct layers (input, hidden, and output layers), each with a number of neurons. For a context where $x \in \mathbf{R}^{p}$, the input layer comprises $p$ neurons. Each neuron in a layer receives input from neurons in the previous layer, applies a weighted sum with a bias term, and then applies an activation function. The activation introduces non-linearity into the model. The final prediction is made at the output layer. The goal during training is to adjust weights and biases to minimize the difference between the network's predictions and the actual values, as quantified by a loss function. An optimization algorithm, such as stochastic gradient descent, facilitates these adjustments.
+Supervised learning uses labeled data, consisting of input-output pairs $(x, y)$. The underlying relationship between the inputs and outputs is often represented by a 'true function' $f: \mathbb{R}^{d_{1}}\rightarrow \mathbb{R}^{d_{2}}$, where $d_{1}, d_{2} \in \mathbb{Z}_{+},$ such that $f(x)=y$ \cite{bishop2006}. However, in practice, this function is unknown, and our goal is to approximate it as closely as possible using a model. In the context of supervised learning, a model is represented by a function $f_{m}$ which takes an input $x$ and parameters $\theta$ to produce a predicted output $\hat{y}=f_{m}(x, \theta)$ \cite{Goodfellow-et-al-2016}. To approximate $f,$ the model $f_{m},$ is trained on a subset of the data that is available, $\{(x^{(1)},y^{(1)}),\ldots,(x^{(n)},y^{(n)})\}$, where $x^{(i)}$ is an input and $y^{(i)}$ is the corresponding label we wish to get from $f(x^{(i)}) \text{ } \text{ }\forall i\in\{1,\ldots n\}$. The parameters $\theta$ are adjusted such that the model's outputs $\hat{y}$ closely align with the true outputs $y$ from the training data. This alignment is quantified by a cost function, which measures the average discrepancy between the model's predictions and the actual outputs over the entire dataset. The goal of the training process is not only to minimize this cost on the training data, but, more importantly, to modify the model such that it generalizes well to unseen data. This is known as the model's capacity for generalization. The better a model can generalize, the more accurate its predictions will be when presented with new data outside of the training set \cite{james2013}.
 
+\paragraph{Feed-forward Neural Networks}\label{Basic_of_FFNN}
+Feed-forward neural networks are a common type of model used in supervised learning. They attempt to approximate the unknown function $f: x \mapsto y$ by defining a function $f_{m}: (x,\theta) \mapsto \hat{y}$, where $\hat{y}$ is the predicted output, $x$ is the input, and $\theta$ represents the model's parameters (the weights and biases of the neurons in the network). The network consists of multiple layers, including input, hidden, and output layers. Each layer contains a number of neurons that receive inputs from the previous layer, apply a weighted sum with a bias term, and then apply an activation function. This activation function introduces non-linearity into the model, enabling it to learn and represent complex patterns in the data. The training process involves adjusting the parameters $\theta$ to minimize the cost function. This is done using an optimization algorithm, such as stochastic gradient descent, which iteratively updates the weights and biases based on the gradients of the loss function with respect to these parameters. A detailed mathematical exploration of stochastic gradient descent will be provided later in the document. Afterwards, the function of each layer in a feed-forward neural network will be discussed, particularly within the context of a specific application of these networks.
 \newpage
-\subsubsection{Convergence Analysis of SGD general case \ref{expectations}}
-In this section, a brief overview of the convergence of stochastic gradient descent (SGD) in the general case is presented, where the goal is to minimize an expectation with an unknown probability distribution. The detailed proof of this proposition will not be provided in this bachelor thesis, but its key components will be outlined, and the original proof by Turinici \cite{turinici2021convergence} will be cited. This thesis will focus on the case where the distribution is an empirical uniform measure, i.e., the case where one minimizes large sums and the distribution is uniform on $\{1,\dots,n\}$, where $n$ is the size of the dataset.
-The goal of SGD is to find a minimum of $F$. It operates iteratively using the update formula:
-\begin{align}
-x_{k+1} = x_{k} - \tau_{k}\nabla_{x}f(x_{k}, z_{k}), \tag{2}
-\end{align}
-where at iteration $k$:
-\begin{itemize}
-\item $\tau_k$ is a deterministic "step size schedule,"
-\item $z_k \in \Omega$ is a random variable independent of any previously drawn random variables.
-\end{itemize}
-
-To prove the convergence, the following hypotheses are needed:
-\begin{enumerate}
-\item The gradient of $f$ is bounded:
-\begin{align}
-\exists B > 0\colon \underset{Z}{\sup}\left\Vert\nabla_{x} f(x, z)\right\Vert^{2} \leq B, \forall x \in \mathbf{R}^{p}. \tag{3}
-\end{align}
-\item $F$ is strongly convex:
-\begin{align}
-\exists\mu > 0: F(y) \geq F(x) + \langle\nabla F(x), y-x\rangle + \frac{\mu}{2}\left\Vert x-y\right\Vert^{2}, \forall x, y \in \mathbf{R}^{p}. \tag{4}
-\end{align}
-\end{enumerate}
-Note that for $\mu = 0$, this is just the usual convexity, i.e., the function is above its tangent. For $\mu > 0$, the function is above a parabola. Proving the convergence of $(x_{k})_{k\in \mathbb{N}}$ involves verifying each item in the corresponding proposition.
-\begin{proposition}[\cite{turinici2021convergence}]\label{pf_sgd_conv_general}
-Suppose that each $f(\cdot, z)$ is differentiable and that $F$ satisfies hypotheses (3) and (4). Then:\
-
-the function $F$ has a unique minimum $x^{*}$;\
-For any $k \geq 0$ denote
-\begin{align}
-d_{k} = \mathbb{E}[\left\Vert x_{k}-x^{*}\right\Vert^{2}]. \tag{5}
-\end{align}
-Then
-\begin{align}
-d_{k+1} \leq (1 - \tau_{k}\mu)d_{k} + \tau_{k}^{2}B. \tag{6}
-\end{align}
-For any $\epsilon > 0$ there exists a $\tau > 0$ such that if $\tau_{k} = \tau$ then
-\begin{align}
-\limsup_{n\rightarrow\infty}{\mathbb{E}[\left\Vert x_{k+1}-x^{*}\right\Vert^{2}]} \leq \epsilon. \tag{7}
-\end{align}
-Take sequence $(\tau_{k})_{k\in \mathbb{N}}$ such that:\
-\begin{align}
-\tau_{k} \rightarrow 0 \text{ } and \text{ } \sum_{k\geq 1} \tau_{k} = \infty. \tag{8}
-\end{align}
-Then $d_{k} = \mathbb{E}[\left\Vert x_{k}-x^{}\right\Vert^{2}] \xrightarrow{k\rightarrow\infty} 0,$ that is $\lim_{k\rightarrow\infty}x_{k} = x^{},$ where the convergence is on the $L^{2}$ norm for random variables (convergence in quadratic mean), In other words, $x_{k} \xrightarrow{L^{2}} x^{*}$.
-\end{proposition}
-For a comprehensive proof of this proposition, please refer to Turinici's work \cite{turinici2021convergence}.
+\subsection{Minimizing Sums and Expectation}
+In the context of supervised learning, we aim to approximate the unknown function $f: \mathbb{R}^{d_{1}}\rightarrow \mathbb{R}^{d_{2}}$. This function maps each input $x$ to an output $y$. We approximate $f$ using a model function, denoted $f_{m}: \mathbb{R}^{d_{1}}\times \mathbb{R}^{p}\rightarrow \mathbb{R}^{d_{2}}$. The model function $f_{m}$ takes an input $x$ and a set of parameters $\theta$ and produces an output $\hat{y}$, which is our prediction of the true output $y$. We have at our disposal an initialized set of parameters $\theta$ and a training set of $n$ examples $T=\{(x^{(1)},y^{(1)}),\ldots,(x^{(n)},y^{(n)})\},$ where $x^{(i)} \in \mathbb{R}^{d_{1}}$ and $y^{(i)} \in \mathbb{R}^{d_{2}} \text{ } \text{ } \forall i\in\{1,\ldots,n\}.$ We assume that there is an unknown joint probability distribution $P_{XY}:\Omega\rightarrow [0,1],$ where $\Omega = \mathbb{R}^{d_{1}} \times \mathbb{R}^{d_{2}}$ is the sample space. Furthermore, we assume that the training examples $(x^{(1)},y^{(1)}),\ldots,(x^{(n)},y^{(n)})$ are drawn i.i.d. from $P_{XY}.$ We also assume that we are given a non-negative real-valued loss function $L(\hat{y},y),$ which measures the difference between the prediction $\hat{y}$ and the true outcome $y.$ As discussed in \cite[20]{coursenotesML}, the cost $F$ associated with the function $f_{m}$ is then defined as an expectation of the loss function $L$. To approximate $f$ by $f_{m},$ we need to minimize the cost function. The optimization problem can then be expressed as:  
+\begin{equation*}\label{min_expectations}\tag{5.2.1}
+\underset{\theta \in \mathbb{R}^{p}}{\text{min}} F(\theta) \overset{\text{def.}}{=} \mathbb{E}_{(x,y)\sim P_{XY}}[L(f_{m}(x, \theta), y)] = \int_{\Omega} L(f_{m}(x, \theta), y) dP_{XY}(x,y).
+\end{equation*}
+While minimizing expectations is a general framework that allows us to account for uncertainty in the data, the cost function $F$ cannot be computed, because the joint distribution $P_{XY}$ is unknown to the learning algorithm. However, we can calculate an approximation to the cost function, known as the empirical cost and denote it by $F_{m}$. This is achieved by averaging the values of the loss function across the entire training set. The optimization problem can then be expressed as:
+\begin{equation*}\label{largesums}\tag{5.2.2}
+\underset{\theta \in \mathbb{R}^{p}}{\text{min}} F_{m}(\theta) \overset{\text{def.}}{=} \frac{1}{n} \sum_{i=1}^{n}L(f_{m}(x^{(i)}, \theta), y^{(i)}).
+\end{equation*}
+Problem \eqref{largesums} is a special case of \eqref{min_expectations} when replacing the true distribution $P_{XY}:\Omega\rightarrow[0,1]$ with the joint Empirical Cumulative Distribution (ECDF) $\hat{P}_{XY_{n}}:T\rightarrow[0,1],$ defined by the training set $T.$
+\begin{definition}(\cite[1]{CastroNotes})\label{ECDF}
+Let $(X^{(1)},Y^{(1)}),\ldots,(X^{(n)},Y^{(n)})$ be a sample of $n$ data points, where each $X^{(i)} = (X^{(i)}_{1},\ldots,X^{(i)}_{d_{1}})$ and $Y^{(i)} = (Y^{(i)}_{1},\ldots,Y^{(i)}_{d_{2}})$ are vector-valued random variables. The sequence $\left\{(X^{(i)},Y^{(i)})\right\}_{i=1}^{n}$ is assumed to be independent and identically distributed (i.i.d.) according to the joint distribution $P_{XY}.$ We denote, $P_{XY}(x,y)=\mathbb{P}\left(X_{1}\leq x_{1},\ldots,X_{d_{1}}\leq x_{d_{1}},Y_{1}\leq y_{1},\ldots,Y_{d_{2}}\leq y_{d_{2}}\right).$ 
+The joint ECDF for $P_{XY}$ is defined as
+\begin{equation*}\tag{5.2.3}
+\hat{P}_{XY_{n}}(x,y) = \frac{1}{n} \sum_{i=1}^{n} \mathbbm{1}\left\{X_{1}^{(i)}\leq x_{1},\ldots,X_{d_{1}}^{(i)}\leq x_{d_{1}},Y_{1}^{(i)}\leq y_{1},\ldots,Y_{d_{2}}^{(i)}\leq y_{d_{2}}\right\}.\footnote{Here, $\mathbbm{1}$ is the indicator function, which is one if the condition inside the brackets is true and zero otherwise.}
+\end{equation*}
+\end{definition}
+The joint ECDF takes the form of a step function, which by jumps by $1/n$ at each of the observed data points $(X^{(i)}, Y^{(i)})$ Rui Castro states in his notes about the univariate ECDF, "Clearly the ECDF seems to be a sensible estimator for the underlying distribution."\cite{CastroNotes} The following theorem provides a justification to use $\hat{P}_{n}$ as an estimator for $P$ in the univariate case:
+\begin{theorem}[Glivenko-Cantelli Lemma]\textnormal{(\cite[2]{CastroNotes})}\label{Glivenko}
+For a sequence of univariate random variables, the empirical distribution converges uniformly to $P(x),$ namely
+\begin{equation*}\tag{5.2.4}
+\left\Vert \hat{P}_{n} - P\right\Vert_{\infty} = \underset{x\in \mathbb{R}}{\sup}\left|\hat{P}_{n}(x) - P(x)\right|\xrightarrow{a.s.} 0,
+\end{equation*}
+as $n\rightarrow\infty,$ where the superscript a.s. denotes convergence almost surely.
+\end{theorem}
+For a comprehensive proof of this theorem, please refer to Castro's work \cite[8]{CastroNotes}. Our data involves multivariate ECDFs, therefore we have to seek for a multidimensional extension of the Glivenko-Cantelli theorem. Specifically, the Vapnik-Chervonenkis inequality serves as a suitable generalization. The theorem and its proof is presented in an abstract form in \cite[4-5]{kahle2006}. We will reformulate this theorem into a corollary that aligns more closely with our particular case. 
+\begin{corollary}[Vapnik-Chervonenkis]\label{VC}
+Let $P_{XY}$ be an unknown distribution, $\hat{P}_{XY_{n}}$ the joint ECDF and $\Omega=\mathbb{R}^{d_{1}}\times \mathbb{R}^{d_{2}}$ the sample space. Then for any $\epsilon>0,$
+\begin{equation*}\tag{5.2.5}
+\mathbb{P}\left\{\underset{(x,y)\in\Omega}{\sup}\left|P_{XY}(x,y)-\hat{P}_{XY_{n}}(x,y)\right| > \epsilon\right\} \xrightarrow{n\rightarrow\infty} 0
+\end{equation*}
+\end{corollary}
+Corollary \ref{VC} suggests that as long as the size of the training dataset $n$ is sufficiently large, the joint ECDF should be a good enough estimator for the underlying distribution $P_{XY}.$ In this setting, the expectation under $\hat{P}_{XY_{n}}$ of the observations $(x,y)$ should be a good estimate of the true expectation under the underlying distribution $P_{XY}$ of the random vectors $(x,y).$ The empirical distribution, considers a finite set of observed data points $(x,y)$, which are treated as if they were discrete. Each observed value is assigned a probability of $1/n.$ With this knowledge, the equation given in \eqref{largesums} can be derived from the equation given in \eqref{min_expectations} as follows:
+\begin{equation*}\tag{5.2.6}
+\begin{aligned}
+F(\theta)
+    &= \mathbb{E}_{(x,y)\sim P_{XY}}[L(f_{m}(x, \theta), y)] \\
+    &\approx \mathbb{E}_{(x,y)\sim \hat{P}_{XY_{n}}}[L(f_{m}(x, \theta), y)]\\ 
+    &= \sum_{i=1}^{n}\mathbb{P}((x, y) = (x^{(i)}, y^{(i)}))\cdot L(f_{m}(x^{(i)}, \theta), y^{(i)})\\ 
+    &= \frac{1}{n}\sum_{i=1}^{n}L(f_{m}(x^{(i)}, \theta), y^{(i)})\\
+    &= \frac{1}{n}\sum_{i=1}^{n}L_{i}(f_{m}(x, \theta), y),
+\end{aligned}
+\end{equation*}
+where we've introduced the last equality as a shorthand notation for convenience. 
+Minimizing sums with a discrete empirical distribution is a widely used technique in machine learning. In this setting, each data point is treated as equally likely. This formulation conveniently transforms the cost function, initially defined as an expectation, into a sum, which simplifies the problem and makes it easier to work with. In the subsequent sections, we will discuss Batch Gradient Descent (BGD) and Stochastic Gradient Descent (SGD). These methods are designed to solve the minimization problems presented in Equations \eqref{min_expectations} and \eqref{largesums}. For ease of notation, we will use $z$ as a substitute for $(x,y)$ with $z\sim P_z$, and simplify the loss function $L(f_{m}(x, \theta), y)$ to $L(\theta, z)$.
+\subsection{Batch Gradient Descent (BGD)}
+We have studied the usual deterministic (batch) gradient descent in extensive detail in Section \ref{sec: GD}. In machine learning, we update the parameters, $\theta\in\mathbb{R}^{p},$ using an iterative process. Each iteration can be represented by the following equation:
+\begin{equation*}\tag{5.3.1}
+\theta_{k+1} = \theta_{k} - \tau_{k}\nabla F(\theta_{k})
+\end{equation*}
+In this equation, $\theta_{k+1}$ represents the updated parameters, while $\theta_{k}$ represents the current parameters, and $\nabla F(\theta_{k})$ is the gradient of the function $F$ at $\theta_{k}$. In the absence of a strong convexity assumption and using the fixed step size method, the step size, $\tau_{k}$, should be chosen such that $0 < \tau_{k} < \tau_{\text{max}}$, where $\tau_{\text{max}} = 1/L$. Here, $L$ represents the Lipschitz constant of the gradient $\nabla F$. Choosing $\tau \approx \tau_{max}$ ensures quite fast convergence. (even linear rates if $F$ is strongly convex.) Most minimization problems in machine learning, are problems in which the cost function is non-convex. In this context, the step size $\tau$ requires careful tuning through experimentation. The goal is to locate a local minimum that is sufficiently close to a global minimum. Suppose we have a training set of data, $\{z^{(1)}\ldots,z^{(n)}\},$ available. Then the cost function can be expressed as a large sum with gradient illustrated as: 
+\begin{equation*}\label{full_grad_of_sum}\tag{5.3.2}
+\nabla F(\theta) = \frac{1}{n} \sum_{i=1}^{n}\nabla L_{i}(\theta, z)
+\end{equation*}
+Computing this gradient typically has complexity $O(np)$ if computing $\nabla L_{i}(\theta, z)$ has linear complexity $p.$ Here $i \in \{1,\ldots,n\}$ represent indices and not random variables. If the size of the dataset $n$ is not too large, then one can afford to perform a few deterministic iterations. Then deterministic methods can be faster. But if $n$ is too big for even one deterministic iteration, stochastic methods can help because they can break down the cost of deterministic iterations into smaller pieces, which allows for a more precise approach.
+\newpage
+\subsection{Stochastic Gradient Descent (SGD)}\label{SGD section}
+In contrast to batch gradient descent, which requires the computation of the full gradient $\nabla F$, the SGD algorithm approximates the gradient using a single stochastic estimate, $\nabla L(\theta, z)$. Consider a random variable $z\sim P_z$ and sample space $\Omega.$ The objective is to minimize the expected value of $L(\theta, z),$ as given in Equation \eqref{min_expectations}. SGD starts from an initial point $\theta_{0}.$ Then, for each iteration index $k,$ SGD updates are performed using stochastic gradient estimates, computed based on specific draws $z_{k}\sim P_{z}.$ The update equation is as follows:
+\begin{equation*}\tag{5.4.1}
+\theta_{k+1} = \theta_{k} - \tau_{k} \nabla L(\theta_{k}, z_{k})
+\end{equation*}
+In this equation, $\theta_{k}$ is the current parameter estimate, $\tau_k$ is the step size at iteration $k$, and $\nabla L(\theta_k, z_k)$ is the stochastic gradient estimate based on the draw $z_k$ from the distribution $P_z$.
+Under certain regularity conditions\footnote{These conditions, which stem from Lebesgue's Dominated Convergence Theorem \cite[67]{stein2005real}, include: $\textnormal{\RN{1}}$: For almost all $z \in \Omega$, $\nabla L(\theta, z)$ exists for all $\theta\in\mathbb{R}^{p}$. $\textnormal{\RN{2}}$: $L(\theta, z)$ is a Lebesgue-integrable function of $z$ for all $\theta\in\mathbb{R}^{p}$. $\textnormal{\RN{3}}$: There exists a function $\phi : \Omega \rightarrow \mathbb{R}$ such that $|\nabla L(\theta, z)| \leq \phi(z)$ for all $\theta\in\mathbb{R}^{p}$ and almost all $z \in \Omega$.} that allow for interchanging limit operations such as differentiation, the stochastic gradient $\nabla L(\theta, z)$ is an unbiased estimator of the full gradient. The derivation of this proceeds as follows:
+\begin{equation*}\label{gd_unbiased}\tag{5.4.2}
+\mathbb{E}_{z \sim P_z}[\nabla L(\theta, z)] = \int_{\Omega}\nabla L(\theta,z)dP_{z}(z) = \nabla\int_{\Omega}L(\theta,z)dP_{z}(z) = \nabla\mathbb{E}_{z \sim P_z}[L(\theta, z)] = \nabla F(\theta)
+\end{equation*}
+The expectation is taken over all possible draws of the random variable $z.$  It demonstrates that the expected value of the stochastic gradient computed for any draw $z_k$ from the distribution $P_z$ is equal to the true gradient $\nabla F(x)$.
 \begin{comment}
-\paragraph{Recall of the general framework} Suppose $(\Omega, \mathcal{F}, \mathbb{P})$ is a probability space, $f: \mathbf{R}^{p} \times \Omega \rightarrow \mathbf{R}$ a function depending on a random argument $z$ and a parameter $x$ to be optimized. Denote
-\begin{align} 
-F(x) = \mathbb{E}_{z}[f(x, z)] \tag{1}
-\end{align}
-The goal of SGD is to find a minimum of $F$. It operates iteratively by taking at iteration $k$:
-\begin{itemize}
-    \item a (deterministic) "step size schedule" $\tau_k$
-    \item a random $z_k \in \Omega$ independent of any other previous random variables drawn
-    \item and updating by the formula
-\end{itemize}
-\begin{align}
-x_{k+1} = x_{k} - \tau_{k}\nabla_{x}f(x_{k}, z_{k}) \tag{2}
-\end{align}
-\paragraph{Hypothesis on $f$ and $F$} In order to prove the convergence we need  the following hypothesis:\\
-1. The gradient of $f$ is bounded:
-\begin{align}
-\exists B > 0\colon \underset{Z}{\sup}\left\Vert\nabla_{x} f(x, z)\right\Vert^{2} \leq B, \forall x \in \mathbf{R}^{p}. \tag{3}
-\end{align}
-2. $F$ is strongly convex:
-\begin{align}
-\exists\mu > 0: F(y) \geq F(x) + \langle\nabla F(x), y-x\rangle + \frac{\mu}{2}\left\Vert x-y\right\Vert^{2}, \forall x, y \in \mathbf{R}^{p}. \tag{4}
-\end{align}
-Note that for $\mu = 0$ this is just the usual convexity, i.e. the function is above its tangent. For $\mu > 0$, the equation above implies that the function is above a parabola. Now proving convergence of $(x_{k})_{k\in \mathbb{N}}$ boils down to proving each item in the following proposition: 
-\begin{proposition}\textnormal{\cite{self_contained_proof}}\label{pf_sgd_conv_general}
-Suppose that each $f(\cdot, z)$ is differentiable and that $F$ satisfies hypothesis (3) and (4). Then\\
-1. the function $F$ has an unique minimum $x^{*}$;\\
-2. For any $k \geq 0$ denote
-\begin{align}
-d_{k} = \mathbb{E}[\left\Vert x_{k}-x^{*}\right\Vert^{2}]. \tag{5}
-\end{align}
-Then 
-\begin{align}
-d_{k+1} \leq (1 - \tau_{k}\mu)d_{k} + \tau_{k}^{2}B. \tag{6}
-\end{align}
-3. For any $\epsilon > 0$ there exists a $\tau > 0$ such that if $\tau_{k} = \tau$ then
-\begin{align}
-\limsup_{n\rightarrow\infty}{\mathbb{E}[\left\Vert x_{k+1}-x^{*}\right\Vert^{2}]} \leq \epsilon. \tag{7}
-\end{align}
-4. Take sequence $(\tau_{k})_{k\in \mathbb{N}}$ such that:\\
-\begin{align}
-\tau_{k} \rightarrow 0 \text{ } and \text{ } \sum_{k\geq 1} \tau_{k} = \infty. \tag{8}
-\end{align}
-Then $d_{k} = \mathbb{E}[\left\Vert x_{k}-x^{*}\right\Vert^{2}] \xrightarrow{k\rightarrow\infty} 0,$ that is $\lim_{k\rightarrow\infty}x_{k} = x^{*},$ where the convergence is on the $L^{2}$ norm for random variables (convergence in quadratic mean), In other words, $x_{k} \xrightarrow{L^{2}} x^{*}$.
-\end{proposition}
+Starting from an initial point $\theta_0$, the SGD updates are performed using the stochastic gradient estimate, computed based on the specific draw $z_k$ for each iteration index $k$. The update equation is as follows:
+\begin{equation*}\tag{4.4.2}
+\theta_{k+1} = \theta_k - \tau_k \nabla L(\theta_k, z_k)
+\end{equation*}
+In this equation, $\theta_k$ is the current parameter estimate, $\tau_k$ is the step size at iteration $k$, and $\nabla L(\theta_k, z_k)$ is the stochastic gradient estimate based on the draw $z_k$ from the distribution $P_z$.  
 \end{comment}
+In a machine learning setting, where $P_z$ is unknown and we have access to a set of training data, $\{z^{(1)},\ldots,z^{(n)}\}$, we generally approximate $P_z$ by the empirical cumulative distribution function $\hat{P}_{n}$ (Definition \ref{ECDF}). The minimization problem is given in Equation \eqref{largesums}.
+\begin{comment}
+\begin{equation*}\tag{4.4.4}
+\underset{\theta\in\mathbb{R}^{p}}{\min}F(\theta) = \frac{1}{n}\sum_{i=1}^{n}L(\theta,z^{(i)}) = \frac{1}{n}\sum_{i=1}^{n}L_{i}(\theta,z)    
+\end{equation*}
+\end{comment}
+Starting from an initial point $\theta_{0},$ the SGD updates are performed using stochastic gradient estimates, $\nabla L(\theta,z^{(i)})=L_{i}(\theta,z)$. The update equation is as follows: 
+\begin{equation*}\label{SGD_update}\tag{5.4.3}
+\theta_{k+1} = \theta_k - \tau_k \nabla L_{i(k)}(\theta_k,z_{k})
+\end{equation*}
+In this case, $i(k)$ is a random variable drawn from the discrete uniform distribution on the index set $\{1, \ldots, n\}$. For each iteration index $k$, $i(k)$ corresponds to the observation $z_{k}^{(i)}$, and the gradient computation is based on this specific observation. Here, the stochastic gradient $\nabla L(\theta, z)$ is again an unbiased estimator of the full gradient, as demonstrated via the following computations: 
+\begin{equation*}\tag{5.4.4}
+\mathbb{E}_{z \sim \hat{P}_{n}}[\nabla L(\theta, z)] = \sum_{i=1}^{n}\mathbb{P}(z = z^{(i)})\cdot \nabla L(\theta, z^{(i)}) =  \nabla\frac{1}{n}\sum_{i=1}^{n}L(\theta, z^{(i)}) = \nabla\mathbb{E}_{z \sim \hat{P}_{n}}[L(\theta, z)] = \nabla F(\theta)
+\end{equation*}
+ The sequence of vectors $\theta_{k+1}$ forms a random process, and the convergence analysis of SGD aims to determine whether this process converges in quadratic mean to a deterministic vector $\theta^*$ that minimizes the objective function $F$.
+\begin{comment}
+Note that in the case of minimizing large sums, batch gradient descent has complexity $O(np),$ while a step of SGD only has complexity $O(p).$ SGD is thus advantageous when $n$ is very large, and one cannot afford to compute the full gradient.
+\end{comment}
+An essential aspect of SGD is determining an appropriate step size. One option is to choose a fixed step size. A commonly used step size is $\tau=0.01.$ This value, is low enough to prevent overshooting the minimum, but high enough to ensure a reasonable convergence time. Bengio (2012) suggests, "A default value of 0.01 typically works for standard multi-layer neural networks but relying exclusively on this default value would be unwise."\cite{bengio2012practical} A question that naturally arises is whether the optimal step size can be calculated a priori. The authors, Reed and Marks note, "... in general, it is not possible to calculate the best learning rate a priori."\cite{reed1999neural} Hence, finding a good step size typically requires trial and error. One can also opt to use adaptive step size methods. These methods can adjust to the characteristics of the dataset based on the gradient behavior. The step size $\tau_k$ should go to zero as $k \rightarrow \infty$, but not too quickly, as it can impact the convergence of the algorithm. As extensively covered in \cite[9-11]{murata}, a typical step size schedule that ensures both properties is to have $\tau_k \sim k^{-1}$ for $k \rightarrow \infty$. 
+
 \newpage
-\subsubsection{Convergence Analysis of SGD special case \ref{largesums}}
-To solve the minimization problem described in \ref{largesums} by means of SGD, it is required that $\left\Vert x_{k} - x^{*}\right\Vert$ tends to zero in quadratic mean, or equivalently, $\mathbb{E}[\left\Vert x_{k} - x^{*}\right\Vert^{2}] \rightarrow 0$ as $k \rightarrow \infty,$ where $\left\Vert\cdot\right\Vert$ is the Euclidean norm. The following proposition \ref{conv_prop_sgd} provides a theoretical foundation in which SGD is ensured to converge. 
+\subsection{Convergence Analysis of Stochastic Gradient Descent}
+\subsubsection{Convergence Analysis of SGD for a cost formulated as a finite sum} 
+To solve the minimization problem described in \eqref{largesums} by means of SGD, it is required that $\left\Vert \theta_{k} - \theta^{*}\right\Vert$ tends to zero in quadratic mean, or equivalently, $\mathbb{E}[\left\Vert \theta_{k} - \theta^{*}\right\Vert^{2}] \rightarrow 0$ as $k \rightarrow \infty,$ where $\left\Vert\cdot\right\Vert$ is the Euclidean norm. Proposition \ref{conv_prop_sgd} provides a theoretical foundation in which SGD is ensured to converge. 
 \begin{proposition}\label{conv_prop_sgd}
-Let $f: \mathbf{R}^{p} \longrightarrow \mathbf{R}$ be $\mu$-strongly convex and differentiable on $\textbf{dom}f = \mathbf{R}^{p}$, and is such that $\left\Vert\nabla f_{i}(x)\right\Vert^{2} \leq C^{2}.$ For the step size choice $\tau_{k} = \frac{1}{\mu (k+1)}$, one has
-\begin{equation*}\label{bound_conv_SGD}\tag{4.4.1.1}
-\mathbb{E}[\left\Vert x_{k} - x^{*}\right\Vert^{2}] \leq \frac{R}{k+1}\text{ }\text{ } where \text{ }\text{ } R = \textnormal{max}\left\{\left\Vert x_{0} - x^{*}\right\Vert^{2},\text{ } C^{2}/\mu^{2}\right\},
+Let $f: \mathbb{R}^{p} \longrightarrow \mathbb{R}$ be $\mu$-strongly convex and differentiable on $\textbf{dom}(f) = \mathbb{R}^{p}$, and is such that $\left\Vert\nabla f_{i}(\theta)\right\Vert^{2} \leq C^{2}.$ For the step size choice $\tau_{k} = \frac{1}{\mu (k+1)}$, one has
+\begin{equation*}\label{bound_conv_SGD}\tag{5.5.1.1}
+\mathbb{E}[\left\Vert \theta_{k} - \theta^{*}\right\Vert^{2}] \leq \frac{R}{k+1}\text{ }\text{ } where \text{ }\text{ } R = \textnormal{max}\left\{\left\Vert \theta_{0} - \theta^{*}\right\Vert^{2},\text{ } C^{2}/\mu^{2}\right\},
 \end{equation*}
 where $\mathbb{E}$ indicates an expectation with respect to the i.i.d. sampling performed at each iteration.
 \end{proposition}
 \begin{proof} By strong convexity, one has
 \begin{align}
-    &f(y) - f(x) \geq \langle \nabla f(x),\text{ } y-x\rangle + \frac{\mu}{2}||y-x||^{2} \text{ }\text{ } \forall x,y \in \mathbf{R}^{p} \text{,} \text{ } \text{ } \text{hence } \nonumber\\
-    &f(x_{k}) - f(x^{*}) \geq \langle \nabla f(x^{*}),\text{ } x_{k}-x^{*}\rangle + \frac{\mu}{2}||x_{k}-x^{*}||^{2}\nonumber\\
-    &f(x^{*}) - f(x_{k}) \geq \langle \nabla f(x_{k}),\text{ } x^{*}-x_{k}\rangle + \frac{\mu}{2}||x^{*}-x_{k}||^{2}.\nonumber
+    &f(y) - f(x) \geq \langle \nabla f(x),\text{ } y-x\rangle + \frac{\mu}{2}||y-x||^{2} \text{ }\text{ } \forall x,y \in \mathbb{R}^{p} \text{,} \text{ } \text{ } \text{hence } \nonumber\\
+    &f(\theta_{k}) - f(\theta^{*}) \geq \langle \nabla f(\theta^{*}),\text{ } \theta_{k}-\theta^{*}\rangle + \frac{\mu}{2}||\theta_{k}-\theta^{*}||^{2}\nonumber\\
+    &f(\theta^{*}) - f(\theta_{k}) \geq \langle \nabla f(\theta_{k}),\text{ } \theta^{*}-\theta_{k}\rangle + \frac{\mu}{2}||\theta^{*}-\theta_{k}||^{2}.\nonumber
 \end{align}
-Summing these two inequalities and using $\nabla f(x^{*}) = 0$ leads to
+Summing these two inequalities and using $\nabla f(\theta^{*}) = 0$ leads to
 \setcounter{equation}{0}
 \begin{align}
-    &\langle \nabla f(x_{k}) - \nabla f(x^{*}),\text{ } x_{k} - x^{*}\rangle = \langle \nabla f(x_{k}),\text{ } x_{k} - x^{*}\rangle \geq \mu ||x_{k} - x^{*}||^{2}.
+    &\langle \nabla f(\theta_{k}) - \nabla f(\theta^{*}),\text{ } \theta_{k} - \theta^{*}\rangle = \langle \nabla f(\theta_{k}),\text{ } \theta_{k} - \theta^{*}\rangle \geq \mu ||\theta_{k} - \theta^{*}||^{2}.
 \end{align}
 Considering only the expectation with respect to the random sample of $i(k) \sim \textbf{i}_{k}$, one has
 \begin{align}
-\mathbb{E}_{\textbf{i}_{k}}[||x_{k+1}-x^{*}||^{2}]
-    &= \mathbb{E}_{\textbf{i}_{k}}[||x_{k} - \tau_{k}\nabla f_{\textbf{i}_{k}}(x_{k}) - x^{*}||^{2}]\nonumber\\
-    &= \mathbb{E}_{\textbf{i}_{k}}[||x_{k}-x^{*}||^{2} + 2\tau_{k}\langle\nabla f_{\textbf{i}_{k}}(x_{k}),\text{ } x^{*} - x_{k}\rangle + \tau_{k}^{2}||\nabla f_{\textbf{i}_{k}}(x_{k})||^{2}]\nonumber\\
-    &= ||x_{k}-x^{*}||^{2} + 2\tau_{k}\langle \mathbb{E}_{\textbf{i}_{k}}[\nabla f_{\textbf{i}_{k}}(x_{k})], \text{ } x^{*} - x_{k}\rangle + \tau_{k}^{2} \mathbb{E}_{\textbf{i}_{k}}[||f_{\textbf{i}_{k}}(x_{k})||^{2}]\\
-    &\leq ||x_{k}-x^{*}||^{2} + 2\tau_{k}\langle \nabla f(x_{k}), \text{ } x^{*} - x_{k}\rangle + \tau_{k}^{2} C^{2}\\
-    &\leq ||x_{k}-x^{*}||^{2} - 2\mu \tau_{k} ||x_{k}-x^{*}||^{2} + \tau_{k}^{2} C^{2}.
+\mathbb{E}_{\textbf{i}_{k}}[||\theta_{k+1}-\theta^{*}||^{2}]
+    &= \mathbb{E}_{\textbf{i}_{k}}[||\theta_{k} - \tau_{k}\nabla f_{\textbf{i}_{k}}(\theta_{k}) - \theta^{*}||^{2}]\nonumber\\
+    &= \mathbb{E}_{\textbf{i}_{k}}[||\theta_{k}-\theta^{*}||^{2} + 2\tau_{k}\langle\nabla f_{\textbf{i}_{k}}(\theta_{k}),\text{ } \theta^{*} - \theta_{k}\rangle + \tau_{k}^{2}||\nabla f_{\textbf{i}_{k}}(\theta_{k})||^{2}]\nonumber\\
+    &= ||\theta_{k}-\theta^{*}||^{2} + 2\tau_{k}\langle \mathbb{E}_{\textbf{i}_{k}}[\nabla f_{\textbf{i}_{k}}(\theta_{k})], \text{ } \theta^{*} - \theta_{k}\rangle + \tau_{k}^{2} \mathbb{E}_{\textbf{i}_{k}}[||f_{\textbf{i}_{k}}(\theta_{k})||^{2}]\\
+    &\leq ||\theta_{k}-\theta^{*}||^{2} + 2\tau_{k}\langle \nabla f(\theta_{k}), \text{ } \theta^{*} - \theta_{k}\rangle + \tau_{k}^{2} C^{2}\\
+    &\leq ||\theta_{k}-\theta^{*}||^{2} - 2\mu \tau_{k} ||\theta_{k}-\theta^{*}||^{2} + \tau_{k}^{2} C^{2}.
 \end{align}
-To go from step (2) to (3), the fact that the gradient is unbiased \ref{gd_unbiased} and the assumption that $\left\Vert\nabla f_{i}(x)\right\Vert^{2} \leq C^{2}$ is used. To go from step (3) to (4), inequality (1) is used. Taking now the full expectation with respect to all the other previous iterates, one obtains
+To go from step (2) to (3), the fact that the gradient is unbiased given in \eqref{gd_unbiased} and the assumption that $\left\Vert\nabla f_{i}(\theta)\right\Vert^{2} \leq C^{2}$ is used. To go from step (3) to (4), inequality (1) is used. Taking now the full expectation with respect to all the other previous iterates, one obtains
 \begin{align} 
-    &\mathbb{E}[||x_{k+1}-x^{*}||^{2}]\leq \mathbb{E}[||x_{k}-x^{*}||^{2}] - 2\mu \tau_{k} \mathbb{E}[||x_{k}-x^{*}||^{2}] + \tau_{k}^{2} C^{2} = (1 - 2\mu \tau_{k}) \mathbb{E}[||x_{k}-x^{*}||^{2}] + \tau_{k}^{2} C^{2}\nonumber
+    &\mathbb{E}[||\theta_{k+1}-\theta^{*}||^{2}]\leq \mathbb{E}[||\theta_{k}-\theta^{*}||^{2}] - 2\mu \tau_{k} \mathbb{E}[||\theta_{k}-\theta^{*}||^{2}] + \tau_{k}^{2} C^{2} = (1 - 2\mu \tau_{k}) \mathbb{E}[||\theta_{k}-\theta^{*}||^{2}] + \tau_{k}^{2} C^{2}\nonumber
     \hspace{0.075cm} \text{\scalebox{0.925}{(5)}}
 \end{align}
-By induction, the bound in \ref{bound_conv_SGD} can be shown. Denote $\varepsilon_{k} \overset{\scalebox{0.5}{def.}}{=} \mathbb{E}[||x_{k}-x^{*}||^{2}]$. Indeed, for $k = 0$, it holds $$\varepsilon_{0} = \mathbb{E}[||x_{0}-x^{*}||^{2}] \leq \frac{\textnormal{max}\left\{\left\Vert x_{0} - x^{*}\right\Vert^{2},\text{ } C^{2}/\mu^{2}\right\}}{1} = \frac{R}{1}$$
+By induction, the bound in \eqref{bound_conv_SGD} can be shown. Denote $\varepsilon_{k} \overset{\scalebox{0.5}{def.}}{=} \mathbb{E}[||\theta_{k}-\theta^{*}||^{2}]$. Indeed, for $k = 0$, it holds $$\varepsilon_{0} = \mathbb{E}[||\theta_{0}-\theta^{*}||^{2}] \leq \frac{\textnormal{max}\left\{\left\Vert \theta_{0} - \theta^{*}\right\Vert^{2},\text{ } C^{2}/\mu^{2}\right\}}{1} = \frac{R}{1}$$
 The induction hypothesis reads: $\varepsilon_{k} \leq \frac{R}{k+1}.$ Using inequality (5) with $\tau_{k} = \frac{1}{\mu(k+1)},$ and denoting $m = k+1$
 \begin{align}
 \varepsilon_{k+1}
     &\leq (1-2\mu \tau_{k}) \varepsilon_{k} + \tau_{k}^{2} C^{2} = \left(1-\frac{2}{m}\right)\varepsilon_{k} + \frac{C^{2}}{(\mu m)^{2}}\nonumber\\
     &\leq \left(1 - \frac{2}{m}\right)\frac{R}{m} + \frac{R}{m^{2}} = \left(\frac{1}{m} - \frac{1}{m^{2}}\right)R = \frac{m-1}{m^{2}}R = \frac{m^{2} - 1}{m^{2}}\frac{1}{m + 1}R \leq \frac{R}{m+1}\nonumber
 \end{align}
-Hence the bound holds for all $k \in \mathbb{N}.$ Now since, $0 \leq \mathbb{E}[\left\Vert x_{k} - x^{*}\right\Vert^{2}] \leq \frac{R}{k+1} \xrightarrow{k \rightarrow 0} \infty$. It follows from the squeeze theorem\footnote{See \ref{squeeze_theorem} for the squeeze theorem.} that $\mathbb{E}[\left\Vert x_{k} - x^{*}\right\Vert^{2}] \xrightarrow{k \rightarrow \infty} 0.$ In other words, $(x_{k})_{k\in\mathbb{N}}$ converges on the $L^{2}$ norm for random variables with $x_{k} \xrightarrow{L^{2}} x^{*}.$ 
+Hence the bound holds for all $k \in \mathbb{N}.$ Now since, $0 \leq \mathbb{E}[\left\Vert \theta_{k} - \theta^{*}\right\Vert^{2}] \leq \frac{R}{k+1} \xrightarrow{k \rightarrow 0} \infty$. It follows from the squeeze theorem\footnote{See \ref{squeeze_theorem} for the squeeze theorem.} that $\mathbb{E}[\left\Vert \theta_{k} - \theta^{*}\right\Vert^{2}] \xrightarrow{k \rightarrow \infty} 0.$ In other words, $(\theta_{k})_{k\in\mathbb{N}}$ converges on the $L^{2}$ norm for random variables with $\theta_{k} \xrightarrow{L^{2}} \theta^{*}.$ 
 \end{proof}
+\subsubsection{Convergence Analysis of SGD for a cost formulated as an integral}
+In the general setting with problem \eqref{min_expectations}, where $(\Omega,\mathcal{F}, \mathbb{P})$ is a probability space, $L:\mathbb{R}^{p}\times\Omega\rightarrow \mathbb{R}$ a loss function depending on a parameter $\theta$ and random argument $z$ with $z\sim P_{z},$ where $P_{z}$ the the underlying distribution, the goal of SGD is to find a minimum of $F$. It operates iteratively using the update formula:
+\begin{align}
+\theta_{k+1} = \theta_{k} - \tau_{k}\nabla_{\theta}L(\theta_{k}, z_{k}), \tag{1}
+\end{align}
+where at iteration $k$:
+\begin{itemize}
+\item $\tau_k$ is a deterministic "step size schedule,"
+\item $z_k \in \Omega$ is a random variable independent of any previously drawn random variables.
+\end{itemize}
+To prove the convergence, the following hypotheses are needed:
+\begin{enumerate}
+\item The gradient of $L$ is bounded:
+\begin{align}
+\exists B > 0\colon \underset{z\in \Omega}{\sup}\left\Vert\nabla_{\theta} L(\theta, z)\right\Vert^{2} \leq B, \hspace{0.2cm} \forall \theta \in \mathbb{R}^{p}. \tag{2}
+\end{align}
+\item $F$ is strongly convex:
+\begin{align}
+\exists\mu > 0: F(y) \geq F(x) + \langle\nabla F(x), y-x\rangle + \frac{\mu}{2}\left\Vert x-y\right\Vert^{2}, \hspace{0.2cm} \forall x, y \in \mathbb{R}^{p}. \tag{3}
+\end{align}
+\end{enumerate}
+Note that for $\mu = 0$, this is just the usual convexity, i.e., the function is above its tangent. For $\mu > 0$, the function is above a parabola. Proving the convergence of $(\theta_{k})_{k\in \mathbb{N}}$ involves verifying each item in the corresponding proposition.
+\begin{proposition}[\cite{turinici2021convergence}]\label{pf_sgd_conv_general}
+Suppose that each $L(\cdot, z)$ is differentiable and that $F$ satisfies hypotheses (2) and (3). Then:\
 
-\subsection{Pros and Cons of Stochastic Gradient Descent}
-One of the weaknesses of SGD is that it only weakly benefits from strong convexity. Whereas BGD enjoys a fast linear rate for strongly convex functions. In BGD, the entire dataset is used to compute the gradient at each iteration, therefore the algorithm can take advantage of the strong curvature of the function and make a large step towards the minimum. On the other hand, in SGD, since only a subset of the data is used to compute the gradient, the gradient estimate is less accurate, and the algorithm may not be able to take advantage of the strong curvature of the function.
-
-\subsection{Brief Overview of Stochastic Global Optimization Algorithms}
+the function $F$ has a unique minimum $\theta^{*}$;\
+For any $k \geq 0$ denote
+\begin{align}
+d_{k} = \mathbb{E}[\left\Vert \theta_{k}-\theta^{*}\right\Vert^{2}]. \tag{4}
+\end{align}
+Then
+\begin{align}
+d_{k+1} \leq (1 - \tau_{k}\mu)d_{k} + \tau_{k}^{2}B. \tag{5}
+\end{align}
+For any $\epsilon > 0$ there exists a $\tau > 0$ such that if $\tau_{k} = \tau$ then
+\begin{align}
+\limsup_{k\rightarrow\infty}{\mathbb{E}[\left\Vert \theta_{k+1}-\theta^{*}\right\Vert^{2}]} \leq \epsilon. \tag{6}
+\end{align}
+Take sequence $(\tau_{k})_{k\in \mathbb{N}}$ such that:\
+\begin{align}
+\tau_{k} \rightarrow 0 \text{ } and \text{ } \sum_{k\geq 1} \tau_{k} = \infty. \tag{7}
+\end{align}
+Then $d_{k} = \mathbb{E}[\left\Vert \theta_{k}-\theta^{*}\right\Vert^{2}] \xrightarrow{k\rightarrow\infty} 0,$ that is $\lim_{k\rightarrow\infty}\theta_{k} = \theta^{*},$ where the convergence is on the $L^{2}$ norm for random variables (convergence in quadratic mean), In other words, $\theta_{k} \xrightarrow{L^{2}} \theta^{*}$.
+\end{proposition}
+For a comprehensive proof of this proposition, please refer to Turinici's work \cite{turinici2021convergence}.
+\newpage
+\subsection{Overview of Stochastic Global Optimization Algorithms}
 \subsubsection{Introduction}
-In the context of global optimization methods, the goal of solving the unconstrained minimization problem described in \ref{eq:8} remains the same. While local optimization methods like gradient descent are effective for convex functions, they can struggle with non-convex functions due to their reliance on gradient information, which may lead them to become trapped in local minima. Stochastic Gradient Descent (SGD) is often sufficient in machine learning settings where a local minimum can provide a satisfactory solution and balance between fitting the data and generalizing to new examples, as discussed in \cite[282-290]{Goodfellow-et-al-2016}.
+In the context of global optimization methods, the goal of solving the unconstrained minimization problem described in \eqref{eq:8} remains the same. While local optimization methods like gradient descent are effective for convex functions, they can struggle with non-convex functions due to their reliance on gradient information, which may lead them to become trapped in local minima. Stochastic Gradient Descent (SGD) is often sufficient in machine learning settings where a local minimum can provide a satisfactory solution and balance between fitting the data and generalizing to new examples, as discussed in \cite[282-290]{Goodfellow-et-al-2016}.
 
 Global optimization methods serve as an alternative to gradient-based optimization techniques, aiming to find a global minimum. These methods are especially important for solving non-convex functions where local optimization methods may not perform well. In contrast to local optimization methods, global optimization methods employ various search strategies to explore the solution space more thoroughly, thereby increasing the likelihood of identifying the global optimum, as discussed in \cite[1-5]{horst1995handbook}. In this section, two popular global optimization methods: Simulated Annealing and Particle Swarm Optimization (PSO) will be discussed.
 
 \subsubsection{Simulated Annealing}
 \paragraph{History and Motivation}
-The Simulated Annealing algorithm is a stochastic global optimization method that efficiently searches for the global minimum of a non-convex function. These functions typically arise from problems in physics, chemistry and biology and are called energy functions \cite[1]{XIANG1997216}. The key feature of simulated annealing is that it provides a means to escape local minima by allowing hill-climbing moves (i.e., moves which worsen the objective function value) in hopes of finding a global minimum \cite{Henderson2003}. The analogy of simulated annealing is that it is similar to the process of blacksmiths making a sword. In order to make a strong and sharp sword, the molecules of the metal must be aligned in the same way. Blacksmiths achieve this by repeatedly heating and cooling the metal to give the molecules a chance to realign themselves into the lowest energy state. This is called annealing. Similarly, the simulated annealing optimization algorithm finds the optimal solution by randomly exploring the solution space and gradually reducing the "temperature" or the randomness in the search process to converge to the optimal solution. So, just as blacksmiths use annealing to create a strong sword, simulated annealing uses a similar approach to find the optimal solution in a search space. 
+The Simulated Annealing algorithm is a stochastic global optimization method that searches for the global minimum of a non-convex function. These functions typically arise from problems in physics, chemistry and biology and are called energy functions \cite[1]{XIANG1997216}. The key feature of simulated annealing is that it provides a means to escape local minima by allowing hill-climbing moves (i.e., moves which worsen the objective function value) in hopes of finding a global minimum \cite{Henderson2003}. The analogy of simulated annealing is that it is similar to the process of blacksmiths making a sword. In order to make a strong and sharp sword, the molecules of the metal must be aligned in the same way. Blacksmiths achieve this by repeatedly heating and cooling the metal to give the molecules a chance to realign themselves into the lowest energy state. This is called annealing. Similarly, the simulated annealing optimization algorithm finds the optimal solution by randomly exploring the solution space and gradually reducing the "temperature" or the randomness in the search process to converge to the optimal solution. So, just as blacksmiths use annealing to create a strong sword, simulated annealing uses a similar approach to find the optimal solution in a search space. 
 \paragraph{General Setting}
-To describe the features of the simulated annealing algorithm, several definitions are needed. These definition are for the most part identical to the definitions used in gradient-based optimization methods. Let $\left(\Omega,\left\Vert\cdot\right\Vert_{\Omega}\right)$ be the solution space (i.e., the set of all possible solutions) . Let $f: \Omega \rightarrow \mathbf{R}$ be an objective function (possible non-convex) defined on the solution space. The goal is to find an optimal solution, $x^{*}$ such that $f(x) \geq f(x^{*}) \text{ }\forall x \in \Omega.$ The objective function must be bounded to ensure that $x^{*}$ exists. Furthermore, define $S = \{x + \varepsilon\cdot\xi \text{ }|\text{ } \xi_{i} \in \left(-1, 1\right) \text{ } \forall i\}$ to be the neighborhood function for $x \in \Omega$ where $\varepsilon > 0$ is arbitrary. So, associated with every solution, $x \in \Omega$, are neighboring solutions in $S$ that can be reached in a single iteration of the algorithm \cite[2]{metropolis1953equation}. The set $S$ represents a region in $\Omega$ obtained by adding small displacements to $x$ along each coordinate axis. In case $\Omega = \mathbf{R}^n$, the set represents an n-dimensional hypercube with $x$ as its origin and side lengths $2\varepsilon.$ From now on we assume that $\Omega = \mathbf{R}^n.$ Simulated annealing starts with a starting vector $x \in \Omega.$ A neighboring solution $x' \in S$ is then generated using the rule described in \cite[2]{metropolis1953equation}. 
-\newpage 
+To describe the features of the simulated annealing algorithm, several definitions are needed. These definition are for the most part identical to the definitions used in gradient-based optimization methods. Let $\left(\Omega,\left\Vert\cdot\right\Vert_{\Omega}\right)$ be the solution space (i.e., the set of all possible solutions). Let $f: \Omega \rightarrow \mathbb{R}$ be an objective function (possibly non-convex) defined on the solution space. The goal is to find an optimal solution, $x^{*}$ such that $f(x^{*}) \leq f(x) \text{ }\forall x \in \Omega.$ The objective function must be bounded to ensure that $x^{*}$ exists. Furthermore, define $S = \{x + \varepsilon\cdot\xi \text{ }|\text{ } \xi_{i} \in \left(-1, 1\right) \text{ } \forall i\}$ to be the neighborhood function for $x \in \Omega$ where $\varepsilon > 0$ is arbitrary. So, associated with every solution, $x \in \Omega$, are neighboring solutions in $S$ that can be reached in a single iteration of the algorithm \cite[2]{metropolis1953equation}. The set $S$ represents a region in $\Omega$ obtained by adding small displacements to $x$ along each coordinate axis. In case $\Omega = \mathbb{R}^n$, the set represents an n-dimensional hypercube with $x$ as its origin and side lengths $2\varepsilon.$ From now on we assume that $\Omega = \mathbb{R}^n.$ Simulated annealing starts with a starting vector $x \in \Omega.$ A neighboring solution $x' \in S$ is then generated using the rule described in \cite[2]{metropolis1953equation}. 
 Namely according to the following pre-specified rule:
-\begin{equation}\tag{4.6.2.1}
+\begin{equation}\tag{5.6.2.1}
 x' = x + \varepsilon\cdot\xi  
 \end{equation}
 where $\varepsilon$ is the maximum allowed displacement, which for the sake of this argument is arbitrary, and $\xi$ is a random vector with $\xi_{i} \in \left(-1,1\right)\text{ } \forall i \in \{1,\ldots,n\}.$ Simulated annealing is based on the Metropolis acceptance criterion \parencite[2]{metropolis1953equation}, which models how a thermodynamic system moves from the current state $x$ to the next state $x'$, intending to minimize the energy content. The candidate $x'$ is accepted as the new solution based on the acceptance probability provided in \cite[289]{Henderson2003}:
-\begin{equation}\tag{4.6.2.2}
+\begin{equation}\tag{5.6.2.2}
 \mathbb{P}\{\text{Accept $x'$ as next solution}\} = 
     \begin{cases}
         \exp\left[-\left(f(x')-f(x)\right)/t_{k}\right] \hspace{0.5cm}\text{if $f(x')-f(x) > 0$}\\
@@ -234,7 +218,7 @@ where $\varepsilon$ is the maximum allowed displacement, which for the sake of t
     \end{cases}
 \end{equation}
 Define $t_{k}$ as the temperature parameter at iteration $k$, such that
-\begin{equation}\tag{4.6.2.3}
+\begin{equation}\tag{5.6.2.3}
 t_k > 0 \hspace{0.33em}\text{for all}\hspace{0.33em} k \hspace{0.33em}\text{and}\hspace{0.23em}\lim_{k\rightarrow\infty}t_{k} = 0
 \end{equation}
 Now as $t_{k}$ decreases $\exp\left[-\left(\Delta f\right)/t_{k}\right]$ decreases as well, lowering the probability that new solutions ($x_{new}$) are accepted in case  $\Delta f = f(x_{new})-f(x_{old}) > 0.$ In other words, when the temperature is lower, the algorithm is less likely to accept a worse solution. If the temperature schedule $t_{k}$ is chosen such that temperature reduction is sufficiently slow, a steady progression towards an optimal solution can be achieved \cite[289]{Henderson2003}. A typical temperature schedule is $t_{k+1} = \alpha t_{k}$ $\implies$ $t_{k} = \alpha^{k} t_{0},$ where $t_{0} > 0$ is the chosen starting temperature and $\alpha \in (0, 1)$ is the cooling constant which indicates the rate of change. For the best performance $\alpha$ should be chosen close to 1, e.g., $\alpha=0.99.$ A typical stopping criterion is $k = k_{max}$ (i.e., whenever the algorithm reaches a predefined maximum number of iterations).
@@ -268,9 +252,9 @@ Particle Swarm Optimization is an algorithm capable of minimizing a non-convex a
     \item In each iteration of the algorithm, a stochastic factor determines, whether a particle moves more towards the globally found best solution or remains more in the vicinity of its own best solution. This stochasticity combined with a good initial distribution of the swarm enables for a thorough exploration of the search space and gives a high chance of finding better solutions close to the global minimum.
 \end{itemize}
 \paragraph{General setting}
-The primary goal of the algorithm is to minimize a function $f: \mathbf{R}^n \longrightarrow \mathbf{R}.$ The algorithm starts by choosing a maximum number of particles $N$ and determines $f(x^{i}) = f(x_{1}^{i},\ldots,x_{n}^{i})$ for each particle $i \in \{1,\ldots,N\}.$ These function evaluations determine how good the positions of each particle $x^{i}$ are.
+The primary goal of the algorithm is to minimize a function $f: \mathbb{R}^n \longrightarrow \mathbb{R}.$ The algorithm starts by choosing a maximum number of particles $N$ and determines $f(x^{i}) = f(x_{1}^{i},\ldots,x_{n}^{i})$ for each particle $i \in \{1,\ldots,N\}.$ These function evaluations determine how good the positions of each particle $x^{i}$ are.
 The swarm, which consists of all particles combined, is interconnected. This means that the particles exchange information, and every particle is aware of the best position that any other particle in the swarm has ever reached. For each particle $i$, its next position is obtained by adding a velocity vector to its current position. As described in \cite[2]{PSO}, the iteration reads as follows:
-\begin{gather*}\tag{4.6.3.1}
+\begin{gather*}\tag{5.6.3.1}
 x^{i}(k + 1) = x^{i}(k) + v^{i}(k+1)\hspace{3.5cm}\\
 \rule{0pt}{3.5em} % Adjust the second value to change the spacing
 \begin{aligned}

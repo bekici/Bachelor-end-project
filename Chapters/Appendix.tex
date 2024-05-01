@@ -1,0 +1,55 @@
+\section{Appendix: Theorems}
+\begin{theorem}\label{spectral norm}
+\textnormal{\cite[3]{matrixnorms}}
+The matrix norm induced by the vector norm $||\cdot||_{2}$ can be expressed, for an $n\times n$ matrix $A = (a_{ij})_{1\leq i,j \leq n} \in \mathbb{R}^{n\times n},$ as $$||A||_{2}=\sqrt{\underset{1 \leq i \leq n}{\max}\lambda_{i}},$$
+where $\lambda_{i},\text{ }i=1,\ldots,n$ are the \textnormal{eigenvalues} of the matrix $A^{T}A.$
+\end{theorem}
+\begin{proof}
+    The proof for this theorem is not included here as it doesn't significantly contribute to the central theme of this thesis. The interested reader may refer to \cite[4]{matrixnorms} for a detailed explanation.
+\end{proof}
+\begin{theorem}\label{SPD_e}
+    A symmetric matrix is positive semi-definite if and only if all of its eigenvalues are non-negative. 
+\end{theorem}
+\begin{proof}
+Suppose $A$ is positive semi-definite, and let $x$ be an eigenvector of $A$ with eigenvalue $\lambda.$ Then $$0\leq x^{T}Ax = x^{T}(\lambda x) = \lambda x^{T}x = \lambda ||x||^{2}$$
+$x$ is an eigenvector of A, so $x\neq 0$. $||x||^{2}> 0$, so dividing both sides by $||x||^{2}$ yields that $\lambda \geq 0.$ Suppose that $A$ is symmetric and all its eigenvalues are non-negative. Then for all $x\neq 0,$
+$$0\leq \lambda_{min}(A)\leq R_{A}(x),$$
+where $R_{A}(x)$ is the Rayleigh quotient of $A.$ Since $x^{T}Ax$ matches $R_{A}(x)$ in sign, we conclude that $A$ is positive-semi definite.
+\end{proof}
+\begin{theorem}[Squeeze Theorem]\label{squeeze_theorem}
+    If $g(x) \leq f(x) \leq h(x)$ for all $x$ in some interval around $c$, and $\lim_{x\to c} g(x) = \lim_{x\to c} h(x) = L$, then $\lim_{x\to c} f(x) = L$.
+\end{theorem}
+\begin{proof}
+Let $\epsilon > 0$ be given. Since $\lim_{x\to c} g(x) = L$ and $\lim_{x\to c} h(x) = L$, there exist $\delta_1, \delta_2 > 0$ such that 
+\[
+|g(x) - L| < \epsilon \quad \text{whenever} \quad 0 < |x - c| < \delta_1
+\]
+and
+\[
+|h(x) - L| < \epsilon \quad \text{whenever} \quad 0 < |x - c| < \delta_2.
+\]
+
+Let $\delta = \min\{\delta_1, \delta_2\}$. Then, whenever $0 < |x - c| < \delta$, we have
+\[
+L - \epsilon < g(x) \leq f(x) \leq h(x) < L + \epsilon,
+\]
+or equivalently,
+\[
+-\epsilon < f(x) - L < \epsilon.
+\]
+That is,
+\[
+|f(x) - L| < \epsilon \quad \text{whenever} \quad 0 < |x - c| < \delta.
+\]
+This shows that $\lim_{x\to c} f(x) = L$.
+\end{proof}
+
+
+
+
+
+
+
+
+
+
