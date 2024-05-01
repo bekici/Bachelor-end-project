@@ -18,7 +18,7 @@ Download the latest PDF build [here](https://github.com/bekici/Bachelor-end-proj
 If you use this work in your research, please cite it using the following BibLaTeX entry:
 
 ```bibtex
-@thesis{YourLastName2024,
+@thesis{Ekici2023,
   author       = {Ekici, B.},
   title        = {Deterministic and Stochastic Schemes for Unconstrained Optimization},
   school       = {Eindhoven University of Technology},
