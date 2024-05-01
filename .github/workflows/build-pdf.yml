@@ -1,0 +1,23 @@
+name: Build LaTeX Document
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Compile LaTeX document using Docker
+      uses: xu-cheng/latex-action@v2
+      with:
+        root_file: main.tex
+        # If you have specific compiler flags or need to run biber, you can customize the 'args' line:
+        # args: "-interaction=nonstopmode -pdf main.tex && biber main && pdflatex main.tex && pdflatex main.tex"
+
+    - name: Upload PDF
+      uses: actions/upload-artifact@v2
+      with:
+        name: main-pdf
+        # Ensure the path matches where the PDF is generated. Typically it's in the same directory as your root_file if not specified otherwise.
+        path: ./main.pdf
