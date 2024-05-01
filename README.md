@@ -9,3 +9,16 @@ pdflatex main.tex
 biber main
 pdflatex main.tex
 pdflatex main.tex
+
+## Citation
+If you use this work in your research, please cite it using the following BibLaTeX entry:
+
+```bibtex
+@thesis{YourLastName2024,
+  author       = {Ekici, B.},
+  title        = {Deterministic and Stochastic Schemes for Unconstrained Optimization},
+  school       = {Eindhoven University of Technology},
+  year         = {2023},
+  address      = {Eindhoven, The Netherlands},
+  type         = {Bachelor's Thesis}
+}
