@@ -58,8 +58,9 @@
 \setlength{\parskip}{0.5\baselineskip}
 
 \usepackage{biblatex}
-\addbibresource{bib.bib}
-\addbibresource{bib2.bib}
+\bibliography{bib}
+%\addbibresource{bib.bib}
+%\addbibresource{bib2.bib}
 
 \DeclareRobustCommand{\gobblefive}[5]{}
 \newcommand*{\SkipTocEntry}{\addtocontents{toc}{\gobblefive}}
@@ -79,6 +80,7 @@
 \newcommand{\abs}[1]{\left\lvert #1 \right\rvert}
 \newcommand{\vertiii}[1]{{\left\vert\kern-0.25ex\left\vert\kern-0.25ex\left\vert #1 
     \right\vert\kern-0.25ex\right\vert\kern-0.25ex\right\vert}}
+    
 \begin{document}
 
 \definecolor{codegreen}{rgb}{0,0.6,0}
@@ -126,17 +128,14 @@
 \clearpage\input{Chapters/4Part_III_theory}
 \clearpage\input{Chapters/5Results}
 \clearpage\input{Chapters/6Conclusion}
+
+\appendix
+\titleformat{\section}{\normalfont\Large\bfseries}{}{0pt}{Appendix}
 \clearpage\input{Chapters/Appendix.tex}
-
-\clearpage\input{Chapters/bib.tex}
-
-%\appendix
-%\titleformat{\section}
-  %{\normalfont\fontsize{12}{15}\bfseries}{#1 \thesection}{1em}{}
-%\pagenumbering{Roman}
+\newpage
+% Resetting section formatting after appendices
+\titleformat{\section}{\normalfont\Large\bfseries}{\thesection}{1em}{Bibiliography}
 \printbibliography
-
-
 \end{document} 
 
 
