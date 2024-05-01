@@ -23,8 +23,9 @@ Problem \eqref{largesums} is a special case of \eqref{min_expectations} when rep
 Let $(X^{(1)},Y^{(1)}),\ldots,(X^{(n)},Y^{(n)})$ be a sample of $n$ data points, where each $X^{(i)} = (X^{(i)}_{1},\ldots,X^{(i)}_{d_{1}})$ and $Y^{(i)} = (Y^{(i)}_{1},\ldots,Y^{(i)}_{d_{2}})$ are vector-valued random variables. The sequence $\left\{(X^{(i)},Y^{(i)})\right\}_{i=1}^{n}$ is assumed to be independent and identically distributed (i.i.d.) according to the joint distribution $P_{XY}.$ We denote, $P_{XY}(x,y)=\mathbb{P}\left(X_{1}\leq x_{1},\ldots,X_{d_{1}}\leq x_{d_{1}},Y_{1}\leq y_{1},\ldots,Y_{d_{2}}\leq y_{d_{2}}\right).$ 
 The joint ECDF for $P_{XY}$ is defined as
 \begin{equation*}\tag{5.2.3}
-\hat{P}_{XY_{n}}(x,y) = \frac{1}{n} \sum_{i=1}^{n} \mathbbm{1}\left\{X_{1}^{(i)}\leq x_{1},\ldots,X_{d_{1}}^{(i)}\leq x_{d_{1}},Y_{1}^{(i)}\leq y_{1},\ldots,Y_{d_{2}}^{(i)}\leq y_{d_{2}}\right\}.\footnote{Here, $\mathbbm{1}$ is the indicator function, which is one if the condition inside the brackets is true and zero otherwise.}
+\hat{P}_{XY_{n}}(x,y) = \frac{1}{n} \sum_{i=1}^{n} \mathbbm{1}\left\{X_{1}^{(i)}\leq x_{1},\ldots,X_{d_{1}}^{(i)}\leq x_{d_{1}},Y_{1}^{(i)}\leq y_{1},\ldots,Y_{d_{2}}^{(i)}\leq y_{d_{2}}\right\}.
 \end{equation*}
+\footnote{Here, $\mathbbm{1}$ is the indicator function, which is one if the condition inside the brackets is true and zero otherwise.}
 \end{definition}
 The joint ECDF takes the form of a step function, which by jumps by $1/n$ at each of the observed data points $(X^{(i)}, Y^{(i)})$ Rui Castro states in his notes about the univariate ECDF, "Clearly the ECDF seems to be a sensible estimator for the underlying distribution."\cite{CastroNotes} The following theorem provides a justification to use $\hat{P}_{n}$ as an estimator for $P$ in the univariate case:
 \begin{theorem}[Glivenko-Cantelli Lemma]\textnormal{(\cite[2]{CastroNotes})}\label{Glivenko}
@@ -84,11 +85,9 @@ Starting from an initial point $\theta_0$, the SGD updates are performed using t
 In this equation, $\theta_k$ is the current parameter estimate, $\tau_k$ is the step size at iteration $k$, and $\nabla L(\theta_k, z_k)$ is the stochastic gradient estimate based on the draw $z_k$ from the distribution $P_z$.  
 \end{comment}
 In a machine learning setting, where $P_z$ is unknown and we have access to a set of training data, $\{z^{(1)},\ldots,z^{(n)}\}$, we generally approximate $P_z$ by the empirical cumulative distribution function $\hat{P}_{n}$ (Definition \ref{ECDF}). The minimization problem is given in Equation \eqref{largesums}.
-\begin{comment}
 \begin{equation*}\tag{4.4.4}
 \underset{\theta\in\mathbb{R}^{p}}{\min}F(\theta) = \frac{1}{n}\sum_{i=1}^{n}L(\theta,z^{(i)}) = \frac{1}{n}\sum_{i=1}^{n}L_{i}(\theta,z)    
 \end{equation*}
-\end{comment}
 Starting from an initial point $\theta_{0},$ the SGD updates are performed using stochastic gradient estimates, $\nabla L(\theta,z^{(i)})=L_{i}(\theta,z)$. The update equation is as follows: 
 \begin{equation*}\label{SGD_update}\tag{5.4.3}
 \theta_{k+1} = \theta_k - \tau_k \nabla L_{i(k)}(\theta_k,z_{k})

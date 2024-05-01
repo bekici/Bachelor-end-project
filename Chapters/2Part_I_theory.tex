@@ -121,9 +121,11 @@ If $f:C\subseteq\mathbb{R}^{n}\longrightarrow\mathbb{R}$ is strictly convex, and
 \end{proposition}
 \begin{proof}
 Let $f:C\subseteq\mathbb{R}^{n}\longrightarrow\mathbb{R}$ be strictly convex. Suppose that there exists $x_{1}^{*}, x_{2}^{*}\in C$ with $x_{1}^{*}\neq x_{2}^{*}$ such that $x_{1}^{*}, x_{2}^{*} \in \underset{x}{\textnormal{argmin}}f(x).$ We choose $\theta=\frac{1}{2}.$ Then by strict convexity, 
+\begin{comment}
 \begin{equation*}
 f(x_{1}^{*}) = f(\frac{x_{1}^{*}+x_{2}^{*}}{2}) < \frac{1}{2} f(x_{1}^{*}) + \frac{1}{2} f(x_{2}^{*}) = f(x_{1}^{*}) \hspace{0.4cm} \text{{\Large \Lightning}}
 \end{equation*}
+\end{comment}
 We reach a contradiction. Thus, if minimizers for strictly convex functions exist, they are unique. 
 \end{proof}
 Lemma \ref{lemma.2.1} will especially prove to be useful in the convergence analysis of descent methods. In many situations neither Definition \ref{definition.2.4} nor Lemma \ref{lemma.2.1} are used to check the convexity of a function. Additional conditions called the second-order conditions are often used to check convexity of a function. Before going over the second-order conditions, we first need the notions of the Hessian and positive semidefiniteness. 
