@@ -58,8 +58,7 @@
 \setlength{\parskip}{0.5\baselineskip}
 
 \usepackage{biblatex}
-\addbibresource{bib.bib}
-\addbibresource{bib2.bib}
+\bibliography{bib}
 
 \DeclareRobustCommand{\gobblefive}[5]{}
 \newcommand*{\SkipTocEntry}{\addtocontents{toc}{\gobblefive}}
@@ -126,14 +125,13 @@
 \clearpage\input{Chapters/4Part_III_theory}
 \clearpage\input{Chapters/5Results}
 \clearpage\input{Chapters/6Conclusion}
+
+\appendix
+\titleformat{\section}{\normalfont\Large\bfseries}{}{0pt}{Appendix}
 \clearpage\input{Chapters/Appendix.tex}
-
-\clearpage\input{Chapters/bib.tex}
-
-%\appendix
-%\titleformat{\section}
-  %{\normalfont\fontsize{12}{15}\bfseries}{#1 \thesection}{1em}{}
-%\pagenumbering{Roman}
+\newpage
+% Resetting section formatting after appendices
+\titleformat{\section}{\normalfont\Large\bfseries}{\thesection}{1em}{Bibiliography}
 \printbibliography
 
 
