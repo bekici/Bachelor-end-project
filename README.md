@@ -10,6 +10,9 @@ biber main
 pdflatex main.tex
 pdflatex main.tex
 ```
+## Latest PDF
+Download the latest PDF build [here](https://github.com/bekici/Bachelor-end-project/actions/workflows/build-pdf.yml).
+
 ## Citation
 If you use this work in your research, please cite it using the following BibLaTeX entry:
 
