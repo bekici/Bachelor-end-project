@@ -9,7 +9,7 @@ pdflatex main.tex
 biber main
 pdflatex main.tex
 pdflatex main.tex
-
+```
 ## Citation
 If you use this work in your research, please cite it using the following BibLaTeX entry:
 
@@ -22,3 +22,4 @@ If you use this work in your research, please cite it using the following BibLaT
   address      = {Eindhoven, The Netherlands},
   type         = {Bachelor's Thesis}
 }
+```
